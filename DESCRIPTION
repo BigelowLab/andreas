@@ -1,11 +1,11 @@
-Package: andrew
+Package: andreas
 Type: Package
 Title: Serves Center for Ocean Forecasting Copernicus needs
 Version: 0.3.0
 Author: Ben Tupper
 Maintainer: Ben Tupper <btupper@bigelow.org>
 Description: Provides download, archiving and access to Copernicus related local datasets.
-URL: https://github.com/BigelowLab/andrew
+URL: https://github.com/BigelowLab/andreas
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

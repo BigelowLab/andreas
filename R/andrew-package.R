@@ -1,9 +1,9 @@
-#' andrew 
+#' andreas 
 #'
-#' Andrew (Andreas) Copernicus was Nicolaus Copernicus' lesser known brother.
+#' Andreas Copernicus was Nicolaus Copernicus' lesser known brother.
 #' 
-#' @name andrew-package
-#' @aliases andrew
+#' @name andreas-package
+#' @aliases andreas
 #' @importFrom utils glob2rx
 #' @importFrom rlang .data
 #' @description Serves Center for Ocean Forecasting Copernicus needs.
