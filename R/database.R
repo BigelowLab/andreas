@@ -1,0 +1,213 @@
+#' Compose a file name from a database
+#'
+#' @export
+#' @param x database (tibble), with date, var, depth
+#' @param path character, the root path for the file name
+#' @param ext character, the file name extension to apply (including dot)
+#' @return character vector of file names in form
+#'         \code{<path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext}
+compose_filename <- function(x, path = ".", ext = ".tif"){
+  
+  # <path>/YYYY/mmdd/id__date_time_depth_period_variable_treatment.ext
+  # cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-14T000000_0.494_day_vo_raw.tif
+  file.path(path,
+            format(x$date, "%Y/%m%d"),
+            sprintf("%s__%s_%s_%s_%s_%s%s",
+                    x$id,
+                    sprintf("%sT%s", format(x$date, "%Y-%m-%d"), x$time),
+                    x$depth, 
+                    x$period,
+                    x$variable,
+                    x$treatment,
+                    ext))
+}
+
+
+#' Decompose a filename into a database
+#'
+#' @export
+#' @param x character, vector of one or more filenames
+#' @param ext character, the extension to remove (including dot)
+#' @return table (tibble) database
+#' \itemize{
+#'  \item{id chr, the dataset_id}
+#'  \item{date Date}
+#'  \item{time, chr, six-character HHMMSS}
+#'  \item{depth chr, the depth in meters}
+#'  \item{period chr, one of day, month, etc}
+#'  \item{variable chr, the variable name}
+#'  \item{treatment chr, treatment such as raw, mean, sum, etc}
+#' }
+decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_uo_raw.tif", 
+                                            "cmems_mod_glo_phy_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_zos_raw.tif"),
+                                     ext = ".tif"){
+  
+  datetime = function(x = c("2022-01-15T000000", "2022-01-16T123456")){
+    list(date = as.Date(substring(x, 1,10), format = "%Y-%m-%d"),
+         time = substring(x, 12))
+  }
+  # a tidy version of gsub
+  global_sub <- function(x, pattern, replacement = ".tif", fixed = TRUE, ...){
+    gsub(pattern, replacement, x, fixed = fixed, ...)
+  }
+  x <- basename(x) |>
+    global_sub(pattern = ext, replacement = "") |>
+    strsplit(split = "__", fixed = TRUE)
+  y = sapply(x, '[[', 2) |>
+    strsplit(split = "_", fixed = TRUE)
+  
+  dt = datetime(sapply(y, '[[', 1))
+  dplyr::tibble(
+    id = sapply(x, '[[', 1),
+    date = dt$date,
+    time = dt$time,
+    depth = sapply(y, '[[', 2),
+    period = sapply(y, '[[', 3),
+    variable = sapply(y, '[[', 4),
+    treatment = sapply(y, '[[', 5) )
+}
+
+#' Construct a database tibble give a data path
+#'
+#' @export
+#' @param path character the directory to catalog
+#' @param pattern character, the filename pattern (as glob) to search for
+#' @param save_db logical, if TRUE save the database via [write_database]
+#' @param ... other arguments for \code{\link{decompose_filename}}
+#' @return tibble database
+build_database <- function(path, pattern = "*.tif", 
+                           save_db = FALSE, 
+                           ...){
+  if (missing(path)) stop("path is required")
+  if (requireNamespace("fs", quietly = TRUE)){
+    db = fs::dir_ls(path[1],
+                     regexp = utils::glob2rx(pattern),
+                     recurse = TRUE,
+                     type = "file") |>
+      decompose_filename(...)
+  } else {
+    db = list.files(path[1], pattern = utils::glob2rx(pattern),
+                    recursive = TRUE, full.names = TRUE) |>
+      decompose_filename(...)
+  }
+ 
+  if (save_db) db = write_database(db, path)
+  return(db)
+}
+
+
+#' Read a file-list database
+#'
+#' @export
+#' @param path character the directory with the database
+#' @param filename character, optional filename
+#' @return a tibble
+read_database <- function(path,
+                          filename = "database"){
+  if (missing(path)) stop("path is required")
+  filepath <- file.path(path[1], filename[1])
+  stopifnot(file.exists(filepath))
+  # date var depth
+  suppressMessages(readr::read_csv(filepath, col_types = 'cDccccc'))
+}
+
+#' Write the file-list database
+#'
+#' We save only date (YYYY-mm-dd), param, trt (treatment) and src (source). If you
+#' have added other variables to the database they will be dropped in the saved
+#' file.
+#'
+#' @export
+#' @param x the tibble or data.frame database
+#' @param path character the directory to where the database should reside
+#' @param filename character, optional filename
+#' @return the input tibble (even if saved version has columns dropped)
+write_database <- function(x, path,
+                           filename = "database"){
+  if (missing(path)) stop("path is required")
+  filepath <- file.path(path[1], filename[1])
+  dummy <- x |>
+    select_database() |>
+    readr::write_csv(filepath)
+  invisible(x)
+}
+
+
+#' Append to the file-list database
+#'
+#' @export
+#' @param x the tibble or data.frame database
+#' @param path character the directory to where the database should reside
+#' @param filename character, the name of the database file
+#' @return a tibble with appended data
+append_database <- function(x, path, filename = "database"){
+  x = select_database(x)
+  if (!dir.exists(path[1])) stop("path not found:", path[1])
+  origfilename <- file.path(path,filename[1])
+  if(!file.exists(origfilename)){
+    return(write_database(x, path, filename = filename))
+  }
+  orig = read_database(path, filename = filename)
+  orig_info = colnames(orig)
+  x_info = colnames(x)
+  ident = identical(orig_info, x_info)
+  if (!isTRUE(ident)){
+    print(ident)
+    stop("input database doesn't match one stored on disk")
+  }
+  dplyr::bind_rows(orig, x) |>
+    dplyr::distinct() |>
+    write_database(path, filename = filename)
+}
+
+#' Retrieve the database pre-defined variable names
+#'
+#' @export
+#' @return charcater vector of variable names
+database_variables = function(){
+  c("id", "date", "time", "depth", "period", "variable", "treatment")
+}
+
+#' Select just the db columns
+#' 
+#' @export
+#' @param x database table
+#' @param cols chr, the column names to keep
+#' @return a database table
+select_database = function(x, cols = database_variables()){
+  dplyr::select(x, dplyr::all_of(cols))
+}
+
+
+
+#' Given a database (days, 8DR or month), determine the times
+#' that are missing between the first and last records
+#' 
+#' @export
+#' @param x a database - typically filtered to just a single period
+#' @param by chr, unit of time used for creating sequence to match against
+#' @return Date dates that seem to be missing
+missing_records = function(x, 
+                           by = dplyr::slice(x,1) |> 
+                             dplyr::pull(dplyr::all_of("period"))){
+  dr = range(x$date)
+  dd = seq(from = dr[1], to = dr[2], by = by)
+  dd[!(dd %in% x$date)]
+}
+
+
+#' Retrieve a list of databases
+#' 
+#' @export
+#' @param path chr, the root data directory
+#' @param pattern chr, database filename regex pattern to search for
+#' @return database paths relative to the root path
+list_databases = function(path = copernicus_path(),
+                          pattern = "^database$"){
+  if (requireNamespace("fs", quietly = TRUE)){
+    ff = fs::dir_ls(path, regexp = pattern, recurse = TRUE, type = "file")
+  } else {
+    ff = list.files(path, pattern = pattern, full.names = TRUE, recursive = TRUE)
+  }
+  sub(paste0(path,.Platform$file.sep), "", dirname(ff))
+}
