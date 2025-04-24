@@ -7,7 +7,49 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Andreas (Andrew) Copernicus was the lesser known brother of [Nicolaus Copernicus](https://en.wikipedia.org/wiki/Nicolaus_Copernicus).  This package serves as suite of functions and scripts to access and manage data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products).  This package leverages the tools provided by the [`copernicus` R package](https://github.com/BigelowLab/copernicus).
 
+
+## Look up tables
+
+We use look up tables (`lut`), merged with Copernicus product description tables, to allow users to define a subset of data sets.  These `luts` can be configured as needed, but for out use case we want to know the `dataset_id`, `variable`, the `depth` and `time` to request.  The spatial bounding box coordinates are not maintained in our default tables, but you could manage those elsewhere (we do using the [cofbb R package](https://github.com/BigelowLab/cofbb)).  Below is out example we use for fetching data from the [GLOBAL_ANALYSISFORECAST_PHY_001_024](https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_PHY_001_024/description) product suite.
+
+```{r}
+suppressPackageStartupMessages({
+  library(andreas)
+  library(copernicus)
+  library(dplyr)
+  library(stars)
+})
+
+lut = read_product_lut(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024') |>
+  glimpse()
+```
+
+Some of the variables are manually curated: `depth`, `fetch`, `mindepth` and `maxdepth`. The balance are derived from the coperncius catalog where they are described: `dataset_id`, `dataset_name`, `short_name`, `standard_name`, `units`, `start_time` and `end_time`.  The latter two tell us the dates between which the products are known to be served.
+
+The manually curated ones are ..
+
+`depth` a descriptive variable with values including 'sur', 'bot' and 'mld', but you could store a numeric depth, too.  The only thing to keep in mind is the numeric depth would be cast to character class.  
+
+`fetch` is simple "yes" or "no" - this way you can turn them on and off as needed to fetch data.
+
+`mindepth` and `maxdepth` are passed to the copernicus package as min/max filters for searching.
+
+The `name` field is a automatically curated field, we convert `short_name` to camelCase to purge the underscores (to save annoyance later when archiving files.)
+
+To be super clear, somebody has to maintain a look up table - it requires some manual intervention. And you can designed the `LUT` to serve your own needs. But once the table is set up, it can persist between R sessions, as we save them in the `copernicus::copernicus_path("lut")` directory.
+
+
+## Fetch data
+
+Requests for data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) are as simple as filtering the above LUT for the desired records (rows).  We use `fetch_andreas()` for this, but keep in mind that it is not always possible to bind attrributes (variables in a stars object) if variables are of varying dimensionality - in particular if they have a depth dimension when retrieved in native form.  
+
+```{r}
+x = lut |>
+  dplyr::filter(name %in% c("uo", "vo", "thetao", "mlotst")) |>
+  fetch_andreas(time = Sys.Date() + c(0,5), bb = cofbb::get_bb("gom"))
+```
 ## Archiving data
 
 You can download and archive data using the database functionality provided in this package.  There are a number of ways to manage suites of data, this is just one fairly light weight method.
