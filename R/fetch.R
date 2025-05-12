@@ -3,16 +3,21 @@
 #' 
 #' @export
 #' @param x table - a look up table with one or more datasets
+#' @param time NULL or a two element range of dates
+#' @param bb NULL or a 4-element vector for subsetting
 #' @param drop_depth logical, if TRUE then drop the depth dimension
 #' @param ... other arguments passed to [copernicus::fetch_copernicus()]
-#' @return stars object
+#' @return stars object or NULL
 fetch_andreas = function(x, 
                          drop_depth = TRUE,
+                         time = c(min(x$start_time), max(x$end_time)),
+                         bb = c(xmin = -180, xmax = 180, ymin = -90, ymax = 90),
                          ...){
   r = x |>
     dplyr::group_by(.data$dataset_id, .data$depth) |>
     dplyr::group_map(
       function(tbl, key, drop_depth = TRUE){
+        if (interactive()) cat("fetch_andreas: ", x$dataset_id[1], "\n")
         filename = tempfile(fileext = ".nc")
         depth = if(is.na(tbl$mindepth[1])) {
             NULL
@@ -20,11 +25,36 @@ fetch_andreas = function(x,
             c(tbl$mindepth[1], tbl$maxdepth[1])
           }
         
-        s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1], 
-                                         vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
-                                         depth = depth,
-                                         ofile = filename,
-                                          ...) # time/bb
+        if (!is.null(time)){
+          if (!all(time[1] >= as.Date(tbl$start_time))) {
+            warning(sprintf("requested start time (%s) is before dataset begins (%s)", 
+                            format(time[1], "%Y-%m-%d"), format(min(tbl$start_time)),"%Y-%m-%d"))
+            return(NULL)
+          }
+          
+          if (!all(time[1] <= as.Date(tbl$end_time))) {
+            warning(sprintf("requested start time (%s) is after dataset ends (%s)", 
+                            format(time[1], "%Y-%m-%d"), format(max(tbl$end_time)),"%Y-%m-%d"))
+            return(NULL)
+          }
+          
+        }
+        if (interactive()){
+          s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1],
+                                           vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
+                                           time = time,
+                                           depth = depth,
+                                           ofile = filename,
+                                           bb = bb) 
+        } else {
+          s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1], 
+                                           vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
+                                           time = time,
+                                           depth = depth,
+                                           ofile = filename,
+                                           bb = bb,
+                                           ...) 
+        }
         if (is.null(s) || inherits(s, "try-error")){
           s = NULL
         } else {

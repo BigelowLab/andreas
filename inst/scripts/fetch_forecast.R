@@ -39,31 +39,19 @@ suppressPackageStartupMessages({
 #' @return a database table 
 fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
   
-  #ofile = copernicus_path("tmp", "forecast.nc")
-  # depths = c(tbl$mindepth[1],tbl$maxdepth[1])
-  # ok <- download_copernicus_cli_subset(ofile = ofile,
-  #                                   dataset_id = tbl$dataset_id[1],
-  #                                   vars = tbl$short_name,
-  #                                   time = c(dates[1], dates[length(dates)]),
-  #                                   depth = depths,
-  #                                   bb = cfg$bb,
-  #                                   log_level = cfg$log_level,
-  #                                   verbose = interactive())
-  # if (ok != 0) {
-  #   msg = sprintf("fetch_forecast: unable to fetch ", tbl$dataset_id[1])
-  #   warning(msg)
-  #   charlier::warn(msg)
-  #   return(NULL)
-  # }
+  # here we need to check that the dates of the request (dates) fit within the 
+  # bounds of the source (tbl$start_time, tbl$end_time).  Presumably for a given 
+  # dataset the stars/stop dates are the same for all variables
   
   x = fetch_andreas(tbl,
                     time = range(dates),
-                    bb = cfg$bb)
+                    bb = cfg$bb, 
+                    verbose = TRUE)
 
   names(x) <- tbl$short_name
-  period = "day"
+  period = copernicus::dataset_period(tbl$dataset_id[1])
   treatment = "raw"
-  time = format(dates, "%Y-%m-%dT00000")
+  time = stars::st_get_dimension_values(x, "time") |> format("%Y-%m-%dT00000")
   db = tbl |> 
     rowwise()|>
     group_map(
@@ -103,7 +91,7 @@ main = function(date = Sys.Date(), cfg = NULL){
   db = P |>
     group_by(dataset_id) |>
     group_map(fetch_dataset, 
-              out_path =out_path, 
+              out_path = out_path, 
               cfg = cfg, 
               dates = dates,
               .keep = TRUE) |>
@@ -123,7 +111,7 @@ Args = argparser::arg_parser("Fetch a copernicus forecast",
                type = "character") |>
   add_argument("--config",
                help = 'configuration file',
-               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
+               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
   parse_args()
 
 
