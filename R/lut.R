@@ -5,6 +5,7 @@
 #' @param description table, the table produced by [copernicus::read_product_description()] for
 #'   the specified `product_id`
 #' @return a table with the following
+#' * product_id
 #' * dataset_id
 #' * dataset_name
 #' * name chr short_name converted to camelCase (used for file View(xstorage)
@@ -32,7 +33,8 @@ read_product_lut = function(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
                        dplyr::select(-dplyr::all_of(c("time_step", "min_depth", "max_depth", "units",
                                                       "standard_name"))) |>
                        dplyr::filter(.data$dataset_id %in% lut$dataset_id & .data$short_name %in% lut$short_name), 
-                     by = c("dataset_id", "short_name")) 
+                     by = c("dataset_id", "short_name")) |>
+    dplyr::mutate(product_id = product_id[1], .before = 1)
   
 }
 

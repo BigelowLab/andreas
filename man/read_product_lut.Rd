@@ -17,6 +17,7 @@ the specified `product_id`}
 }
 \value{
 a table with the following
+* product_id
 * dataset_id
 * dataset_name
 * name chr short_name converted to camelCase (used for file View(xstorage)

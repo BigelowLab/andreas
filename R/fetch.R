@@ -9,7 +9,6 @@
 fetch_andreas = function(x, 
                          drop_depth = TRUE,
                          ...){
-  
   r = x |>
     dplyr::group_by(.data$dataset_id, .data$depth) |>
     dplyr::group_map(
@@ -20,16 +19,26 @@ fetch_andreas = function(x,
           } else {
             c(tbl$mindepth[1], tbl$maxdepth[1])
           }
+        
         s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1], 
                                          vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
                                          depth = depth,
                                          ofile = filename,
-                                         ...) |>
+                                          ...) # time/bb
+        if (is.null(s) || inherits(s, "try-error")){
+          s = NULL
+        } else {
+          s = s |>
               rlang::set_names(dplyr::pull(tbl, dplyr::all_of("short_name")))
-        if (drop_depth) s = dplyr::slice(s, "depth", 1)
-        s
-      }, .keep = TRUE, drop_depth = drop_depth) |>
-    copernicus::bind_stars()
+          if (drop_depth && ("depth" %in% names(stars::st_dimensions(s)))){
+            s = dplyr::slice(s, "depth", 1)
+          } 
+          s
+        }
+      }, .keep = TRUE, drop_depth = drop_depth) 
+  ix <- sapply(r, is.null)
+  if (all(ix)) return(NULL)
+  r = copernicus::bind_stars(r[!ix])
   r
 }
 

@@ -72,12 +72,62 @@ unpack_copernicus <- function(filename, banded = FALSE, bind = TRUE){
 #' 
 #' @export
 #' @param x stars object
+#' @param lut a tabular database (ala from `read_product_lut()`)
 #' @param path char, the data path
+#' @param time NULL
 #' @param ... arguments for \code{\link{generate_filename}}
 #' @return tabular database as a tibble
-archive_copernicus = function(x,
-                              path = ".",
-                              ...){
+archive_andreas = function(x, lut,
+                           path = ".",
+                           time = NULL,
+                           ...){
+  
+  dates = stars::st_get_dimension_values(x, "time") 
+  if (is.null(dates)) {
+    if (is.null(time)){
+      stop("Either `x` should have a `time` dimension or you should provide time")
+    }
+    dates = time
+  }
+  
+  vnames = names(x)
+  lnames = unique(lut$name)
+  ix = vnames %in% lnames
+  if (!all(ix)){
+    stop("all variable names in `x` must be found in `lut`: ", 
+         paste(vnames[!ix], collapse = ", "))
+  }
+  
+  
+  db = lapply(vnames,
+              function(vname){
+                minilut = dplyr::filter(lut,
+                                        name == vname)
+                ff = file.path(path,
+                               format(x$date, "%Y/%m%d"),
+                               sprintf("%s__%s_%s_%s_%s_%s%s",
+                                       x$id,
+                                       sprintf("%sT%s", format(x$date, "%Y-%m-%d"), x$time),
+                                       x$depth, 
+                                       x$period,
+                                       x$variable,
+                                       x$treatment,
+                                       ext))
+              })
+  
+  
+  # <path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext
+  
+  ff = file.path(path,
+            format(x$date, "%Y/%m%d"),
+            sprintf("%s__%s_%s_%s_%s_%s%s",
+                    x$id,
+                    sprintf("%sT%s", format(x$date, "%Y-%m-%d"), x$time),
+                    x$depth, 
+                    x$period,
+                    x$variable,
+                    x$treatment,
+                    ext))
   
   ff = generate_filename(x, ...)
   db = decompose_filename(ff)

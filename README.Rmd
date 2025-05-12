@@ -48,22 +48,25 @@ Requests for data from the [Copernicus Marine Data Store](https://data.marine.co
 ```{r}
 x = lut |>
   dplyr::filter(name %in% c("uo", "vo", "thetao", "mlotst")) |>
-  fetch_andreas(time = Sys.Date() + c(0,5), bb = cofbb::get_bb("gom"))
+  fetch_andreas(time = Sys.Date() + c(0,1), 
+                bb = cofbb::get_bb("gom"))
+x
 ```
+
 ## Archiving data
 
 You can download and archive data using the database functionality provided in this package.  There are a number of ways to manage suites of data, this is just one fairly light weight method.
 
-Here, we store data in a directory tree that starts with `product` and `region` at it's root. Within the `region` we divide by `year`, `monthday`.  Within in each `monthday` directory there are one or more files uniquely named to provide complete identification of datasetid, time, depth, period, variable and treatment. Each file contains one raster for one variable at one depth and one time.   
+Here, we store data in a directory tree that starts with `region` and `product` at it's root. Within the `product` we divide by `year`, `monthday`.  Within in each `monthday` directory there are one or more files uniquely named to provide complete identification of datasetid, time, depth, period, variable and treatment. Each file contains one raster for one variable at one depth and one time.   
 
 Here is an example of a file name that follows this pattern `datasetid__date_time_depth_period_variable_treatment.tif`.
 ```
-GLOBAL_ANALYSISFORECAST_PHY_001_024/nwa/2022/0601/cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2022-06-01T000000_sur_day_uo_raw.tif
+nwa/GLOBAL_ANALYSISFORECAST_PHY_001_024/2022/0601/cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2022-06-01T000000_sur_day_uo_raw.tif
 ```
 
-Here you can see that data set id and the rest of the identifiers are separated by a double underscore to aid in programmatic parsing.  Time includes the hour in case we ever want to download the 6-hour data sets.  Depth is currenly only expressed as "sur", "bot" and "mld", but use of measured values such as "1.493" *etc.* is allowed but not currently used. The treatment, `raw`, in this case means the values are as downloaded, however, if you ever wanted to roll your own running mean (say 8-day rolling mean) or some other statistic this naming system provides the flexibility you will need.
+Here you can see that data set id and the rest of the identifiers are separated by a double underscore to aid in programmatic parsing.  Time includes the hour in case we ever want to download the 6-hour data sets.  Depth is currently only expressed as "sur", "bot" and "mld", but use of measured values such as "1.493" *etc.* is allowed but not currently used. The treatment, `raw`, in this case means the values are as downloaded, however, if you ever wanted to roll your own running mean (say 8-day rolling mean) or some other statistic this naming system provides the flexibility you will need.
 
-**NOTE** Don't forget to [set your root data path](#Configure-data-path).
+**NOTE** Don't forget to [set your root data path](https://github.com/BigelowLab/copernicus?tab=readme-ov-file#configure-data-path.).
 
 First we define an output path for the Gulf of Maine data.  The path isn't created until data is written to it.  Then we simply call fetch and write individual GeoTIFF files into a database structure.  Note that we provide an identifier that provides the provenance of the data.  We receive, in turn, a table that serves as a database.
 
@@ -111,7 +114,7 @@ db <- copernicus::read_database(path) |>
 
 Now we can read in the files.
 
-```{r, read_files}
+```{r read_files}
 s = read_copernicus(db, path)
 s
 ```
