@@ -3,6 +3,7 @@
 export(append_database)
 export(archive_andreas)
 export(build_database)
+export(coerce_dates)
 export(compose_filename)
 export(create_lut)
 export(database_variables)

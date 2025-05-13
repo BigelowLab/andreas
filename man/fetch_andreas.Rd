@@ -5,17 +5,31 @@
 \title{A wrapper around [copernicus::fetch_copernicus()] to fetch Copernicus data as
 stars objects.}
 \usage{
-fetch_andreas(x, drop_depth = TRUE, ...)
+fetch_andreas(
+  x,
+  drop_depth = TRUE,
+  time = c(Sys.Date(), as.Date(max(x$end_time))),
+  bb = c(xmin = -180, xmax = 180, ymin = -90, ymax = 90),
+  coerce_time = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{table - a look up table with one or more datasets}
 
 \item{drop_depth}{logical, if TRUE then drop the depth dimension}
 
+\item{time}{NULL or a two element range of dates}
+
+\item{bb}{NULL or a 4-element vector for subsetting}
+
+\item{coerce_time}{logical, if TRUE then coerce min and max time to fit within
+the catalog offering}
+
 \item{...}{other arguments passed to [copernicus::fetch_copernicus()]}
 }
 \value{
-stars object
+stars object or NULL
 }
 \description{
 A wrapper around [copernicus::fetch_copernicus()] to fetch Copernicus data as

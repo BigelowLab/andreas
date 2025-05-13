@@ -1,3 +1,26 @@
+#' Coerce user dates to fit within the catalog dates
+#' 
+#' @export
+#' @param mydates vector of Dates
+#' @param catalog a catalog table of one or more datasets
+#' @return two element Date class object corced to fit within the catalog data range
+coerce_dates = function(mydates = Sys.Date() + c(0,9), 
+                        catalog = read_product_lut()){
+              
+    mydates = as.Date(mydates)            
+    min_y = as.Date(min(catalog$start_time, na.rm = TRUE))
+    max_y = as.Date(max(catalog$end_time, na.rm = TRUE))
+    
+    ismall = mydates < min_y
+    mydates[ismall] <- min_y
+    
+    ibig = mydates > max_y
+    mydates[ibig] <- max_y
+    
+    mydates
+}
+
+
 #' A wrapper around [copernicus::fetch_copernicus()] to fetch Copernicus data as
 #' stars objects.
 #' 
@@ -6,18 +29,27 @@
 #' @param time NULL or a two element range of dates
 #' @param bb NULL or a 4-element vector for subsetting
 #' @param drop_depth logical, if TRUE then drop the depth dimension
+#' @param coerce_time logical, if TRUE then coerce min and max time to fit within
+#'   the catalog offering
 #' @param ... other arguments passed to [copernicus::fetch_copernicus()]
 #' @return stars object or NULL
 fetch_andreas = function(x, 
                          drop_depth = TRUE,
-                         time = c(min(x$start_time), max(x$end_time)),
+                         time = c(Sys.Date(), as.Date(max(x$end_time))),
                          bb = c(xmin = -180, xmax = 180, ymin = -90, ymax = 90),
+                         coerce_time = TRUE,
                          ...){
+  if (FALSE){
+    drop_depth = TRUE
+    time = c(Sys.Date(), as.Date(max(x$end_time)))
+    bb = c(xmin = -77, xmax = -42.5, ymin = 36.5, ymax = 56.7)
+    coerce_time = TRUE
+  }
   r = x |>
     dplyr::group_by(.data$dataset_id, .data$depth) |>
     dplyr::group_map(
       function(tbl, key, drop_depth = TRUE){
-        if (interactive()) cat("fetch_andreas: ", x$dataset_id[1], "\n")
+        if (interactive()) cat("fetch_andreas: ", tbl$dataset_id[1], "\n")
         filename = tempfile(fileext = ".nc")
         depth = if(is.na(tbl$mindepth[1])) {
             NULL
@@ -26,19 +58,22 @@ fetch_andreas = function(x,
           }
         
         if (!is.null(time)){
-          if (!all(time[1] >= as.Date(tbl$start_time))) {
-            warning(sprintf("requested start time (%s) is before dataset begins (%s)", 
-                            format(time[1], "%Y-%m-%d"), format(min(tbl$start_time)),"%Y-%m-%d"))
-            return(NULL)
-          }
-          
-          if (!all(time[1] <= as.Date(tbl$end_time))) {
-            warning(sprintf("requested start time (%s) is after dataset ends (%s)", 
-                            format(time[1], "%Y-%m-%d"), format(max(tbl$end_time)),"%Y-%m-%d"))
-            return(NULL)
-          }
-          
-        }
+          if (coerce_time) {
+            time = coerce_dates(time, tbl)
+          } else {
+            if (!all(time[1] >= as.Date(tbl$start_time))) {
+              warning(sprintf("requested start time (%s) is before dataset begins (%s)", 
+                              format(time[1], "%Y-%m-%d"), format(min(tbl$start_time)),"%Y-%m-%d"))
+              return(NULL)
+            } # check min time
+            
+            if (!all(time[length(time)] <= as.Date(tbl$end_time))) {
+              warning(sprintf("requested start time (%s) is after dataset ends (%s)", 
+                              format(time[1], "%Y-%m-%d"), format(max(tbl$end_time)),"%Y-%m-%d"))
+              return(NULL)
+            } # check max time
+          } # corece_time?
+        } # time is not NULL
         if (interactive()){
           s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1],
                                            vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
