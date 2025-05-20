@@ -1,18 +1,13 @@
-# Fetch one day of Copernicus global-analysis-forecast-phy-001-024 data
-# for the nwa region
-#
-# usage: fetch_day.R [--] [--help] [--date DATE] [--config CONFIG]
+# usage: backfill_days.R [--] [--help] [--config CONFIG]
 # 
-# Fetch copernicus data for one day
+# Backfill copernicus data
 # 
 # flags:
 #   -h, --help    show this help message and exit
 # 
 # optional arguments:
-#   -d, --date    the date of the forecast [default: 2025-03-11]
 #   -c, --config  configuration file [default:
-#                    /mnt/s1/projects/ecocast/corecode/R/copernicus/inst/config/nwa_daily_fetch_surface.yaml]
-
+#      /mnt/s1/projects/ecocast/coredata/copernicus/config/fetch-day-GLOBAL_MULTIYEAR_PHY_001_030.yaml]
 
 suppressPackageStartupMessages({
   library(copernicus)
@@ -79,56 +74,64 @@ fetch_this_day = function(date, cfg, data_path, P){
     copernicus::decompose_filename() 
 }
 
-main = function(cfg = NULL){
-  ss = product_lut("dataset_metadata")
-  P = copernicus::product_lut(cfg$product) |>
-    dplyr::filter(fetch == "yes") |>
-    dplyr::group_by(dplyr::all_of(c("product_id", "dataset_id")))
+backfill_dataset = function(tbl, key, path = ".", DB = NULL){
   
-  data_path = copernicus::copernicus_path(cfg$region, cfg$product) |>
+  # these are what the catalog offers for this dataset
+  # we assume for a given dataset all start/end dates are shared in
+  # common
+  available_dates = seq(from = min(tbl$start_time),
+                        to = max(tbl$end_time),
+                        by = copernicus::dataset_period(tbl$dataset_id[1]))
+  # here we compute the missing dates
+  missing_dates = if(nrow(DB) > 0) {
+      have = DB |> 
+        dplyr::filter(.data$id == tbl$dataset_id[1]) |>
+        dplyr::arrange(date) |>
+        dplyr::pull(date)
+      available_dates[!(available_dates %in% have)]
+    } else {
+      available_dates
+    }
+  
+  db = tbl |>
+    dplyr::group_by(depth) |>
+    dplyr::group_map(
+      function(tab, quay){
+        lapply(seq_along(missing_dates),
+          function(idate){
+            time = c(missing_dates[i], missing_dates[i])
+            depth = c(tb$mindepth, tbl$maxdepth)
+            x = andreas::fetch_andreas(tab,
+                                       depth = depth,
+                                       time = time)
+            
+          }) |>
+          dplyr::bind_rows()
+      }, .keep = TRUE) |>
+    dplyr::bind_rows()
+  db
+}
+
+
+main = function(cfg = NULL){
+ 
+  P = andreas::read_product_lut(cfg$product) |>
+    dplyr::filter(fetch == "yes")
+  
+  path = copernicus::copernicus_path(cfg$region, cfg$product) |>
     copernicus::make_path()
   
+  DB = andreas::read_database(path)
   
+  # for each dataset_id
+  # compare the stored dates with those served
+  # retrieve just the missing ones
+  newdb = P |>
+    dplyr::group_by(.data$dataset_id) |>
+    dplyr::group_map(backfill_dataset, path = path, DB = DB, .keep = TRUE) |>
+    dplyr::bind_rows() |>
+    andreas::append_database(product_path)
   
-  newdb = dplyr::group_map(P,
-    function(p){
-      start_date = as.Date(cfg$first_date)
-      end_date = Sys.Date()
-      all_dates = seq(from = start_date, to = end_date, by = "day")
-    })
-  
-  start_date = as.Date(cfg$first_date)
-  end_date = Sys.Date()
-  all_dates = seq(from = start_date, to = end_date, by = "day")
-  
-  if (file.exists(copernicus::copernicus_path(cfg$region,
-                                              cfg$product,
-                                              "database"))){
-    DB = read_database(data_path)
-    missing_dates <- all_dates[!(all_dates %in% DB$date)]
-  } else {
-    missing_dates = all_dates
-  }
-  charlier::info("backfill_days: missing %i days", length(missing_dates))
-  
-  # here we do an explicit loop as we wish to optionally terminate the 
-  # process early if we miss three or more dates - which likely implies...
-  # a. the date(s) are not available
-  # b. credentials are messed up somehow
-  # c. catalog/dataset mash up?
-  
-  # an emplyt list of the needed length
-  dbs = vector(mode = "list", length = length(missing_dates))
-  # loop through - testing for missing each time, break if exceeded
-  # 
-  for (i in seq_along(missing_dates)){
-    dbs[[i]] = fetch_this_day(missing_dates[i], cfg, data_path, P)
-    if (MISSED_COUNT > MAX_MISSED_COUNT) break
-  }
-  
-  dbs =  dplyr::bind_rows(dbs)
-  
-  if (nrow(dbs) > 0) DB = dbs |> append_database(data_path)
   
   return(0)
 }
@@ -139,7 +142,7 @@ Args = argparser::arg_parser("Backfill copernicus data",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "fetch-day-GLOBAL_MULTIYEAR_PHY_001_030.yaml")) |>
+                                         "fetch-day-GLOBAL_MULTIYEAR_BGC_001_029.yaml")) |>
   parse_args()
 
 
@@ -149,10 +152,9 @@ charlier::start_logger(copernicus_path(cfg$reg, cfg$product, "log"))
 charlier::info("backfill_days for %s", cfg$product)
 
 MAX_MISSED_COUNT = 3
-META = copernicus::product_lut("dataset_metadata")
 
 if (!interactive()){
-  ok = main( cfg )
+  ok = main(cfg)
   charlier::info("backfill_days: done")
   quit(save = "no", status = ok)
 } else {

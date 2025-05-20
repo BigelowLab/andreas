@@ -14,6 +14,13 @@ write_copernicus = function(x, db, path = ".", check_path = TRUE){
   stars::write_stars(x, fname)
 }
 
+#' @export
+#' @rdname write_copernicus
+write_andreas = function(x, db, path = ".", check_path = TRUE){
+  write_copernicus(x, db, path = ".", check_path = TRUE)
+}
+
+
 #' Read one or more copernicus files
 #' 
 #' By default the function tries to return an object with (variables of x, y, time) 
@@ -45,6 +52,12 @@ read_copernicus = function(db, path){
         }
       }, .keep = TRUE) |>
     bind_stars()
+}
+
+#' @export
+#' @rdname read_copernicus
+read_andreas = function(db, path){
+  read_copernicus(db, path)
 }
 
 

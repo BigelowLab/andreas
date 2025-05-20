@@ -21,7 +21,11 @@
 
 suppressPackageStartupMessages({
   library(copernicus)
-  library(andreas)
+  if (interactive()){
+   devtools::load_all() 
+  } else {
+    library(andreas)
+  }
   library(stars)
   library(dplyr)
   library(charlier)
@@ -32,26 +36,30 @@ suppressPackageStartupMessages({
 
 
 #' Fetch variable for one dataset
-#' @param tbl one or more rows of product lut
+#' @param tbl one or more rows of product lut for one dataset
 #' @param key likely empty tibble
 #' @param dates the dates to retrieve
 #' @param out_path the output path
 #' @return a database table 
 fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
   
+  if (DEVMODE) cat("fetch_dataset:", tbl$dataset_id[1],"\n")
   # here we need to check that the dates of the request (dates) fit within the 
   # bounds of the source (tbl$start_time, tbl$end_time).  Presumably for a given 
   # dataset the stars/stop dates are the same for all variables
-  
+
+  # here we get a list for each dataset-depth group
   x = fetch_andreas(tbl,
                     time = range(dates),
                     bb = cfg$bb, 
-                    verbose = TRUE)
-
-  names(x) <- tbl$short_name
+                    verbose = TRUE)[[1]]
+  dimx = stars::st_dimensions(x)
+  andreas = attr(x, "andreas")
+  names(x) <- tbl$name
   period = copernicus::dataset_period(tbl$dataset_id[1])
   treatment = "raw"
-  time = stars::st_get_dimension_values(x, "time") |> format("%Y-%m-%dT00000")
+  d = stars::st_dimensions(x)
+  time = andreas$time |> format("%Y-%m-%dT00000")
   db = tbl |> 
     rowwise()|>
     group_map(
@@ -66,9 +74,14 @@ fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
                   treatment)
         db = decompose_filename(fname)
         ofiles = compose_filename(db, out_path)
+    
         for (i in seq_along(fname)){
           ok = make_path(dirname(ofiles[i]))
-          s = stars::write_stars(dplyr::slice(x[nm], "time", i), ofiles[i])
+          s = if ("time" %in% names(dimx)){
+              stars::write_stars(dplyr::slice(x[nm], "time", i), ofiles[i]) 
+            } else {
+              stars::write_stars(x[nm], ofiles[i]) 
+            }
         }
         db
       } ) |>
@@ -84,23 +97,28 @@ main = function(date = Sys.Date(), cfg = NULL){
   dates <- date + c(0,seq_len(9))
   
   P = andreas::read_product_lut(cfg$product) |>
-    dplyr::filter(fetch == "yes")
+    dplyr::filter(fetch == "yes") |>
+    group_by(dataset_id, depth) 
 
   out_path <- copernicus::copernicus_path(cfg$region, cfg$product)
   
+  if (FALSE) tbl = filter(P, dataset_id == "cmems_mod_glo_phy_anfc_0.083deg_P1D-m")
+  
+  
   db = P |>
-    group_by(dataset_id) |>
     group_map(fetch_dataset, 
               out_path = out_path, 
               cfg = cfg, 
               dates = dates,
               .keep = TRUE) |>
-    bind_rows() |>
-    append_database(out_path)
+    dplyr::bind_rows() |>
+    andreas::append_database(out_path)
   
   
   return(0)
 }
+
+DEVMODE = interactive()
 
 Args = argparser::arg_parser("Fetch a copernicus forecast",
                              name = "fetch_forecast.R", 
@@ -111,7 +129,7 @@ Args = argparser::arg_parser("Fetch a copernicus forecast",
                type = "character") |>
   add_argument("--config",
                help = 'configuration file',
-               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
+               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
   parse_args()
 
 

@@ -12,7 +12,7 @@ read_database(path, filename = "database")
 \item{filename}{character, optional filename}
 }
 \value{
-a tibble
+a tibble (possibly empty if the database doesn't exist)
 }
 \description{
 Read a file-list database

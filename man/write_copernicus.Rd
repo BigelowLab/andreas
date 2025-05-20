@@ -2,9 +2,12 @@
 % Please edit documentation in R/io.R
 \name{write_copernicus}
 \alias{write_copernicus}
+\alias{write_andreas}
 \title{Write a copernicus file given a stars object, database and path}
 \usage{
 write_copernicus(x, db, path = ".", check_path = TRUE)
+
+write_andreas(x, db, path = ".", check_path = TRUE)
 }
 \arguments{
 \item{x}{a stars object}

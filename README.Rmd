@@ -108,18 +108,20 @@ The database is very light and easy to filter for just the records you might nee
 Let's walk through reading the database, filtering it for a subset, reading the files and finally displaying.
 
 ```{r database, message = FALSE}
-db <- copernicus::read_database(path) |>
+db <- andreas::read_database(path) |>
   dplyr::glimpse()
 ```
 
 Now we can read in the files.
 
 ```{r read_files}
-s = read_copernicus(db, path)
+s = db |>
+  dplyr::slice(1:4) |>
+  read_copernicus(path)
 s
 ```
 
-The database diretcory structure looks like this (requires [fs package](https://CRAN.R-project.org/package=fs)) which you won't need just to use copernicus).
+The database directory structure looks like this (requires [fs package](https://CRAN.R-project.org/package=fs)) which you won't need just to use copernicus).
 
 ```{r dir_tree}
 fs::dir_tree(path)

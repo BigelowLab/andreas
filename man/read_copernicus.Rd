@@ -2,9 +2,12 @@
 % Please edit documentation in R/io.R
 \name{read_copernicus}
 \alias{read_copernicus}
+\alias{read_andreas}
 \title{Read one or more copernicus files}
 \usage{
 read_copernicus(db, path)
+
+read_andreas(db, path)
 }
 \arguments{
 \item{db}{tibble, database of selected records}

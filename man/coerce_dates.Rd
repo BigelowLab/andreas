@@ -4,12 +4,18 @@
 \alias{coerce_dates}
 \title{Coerce user dates to fit within the catalog dates}
 \usage{
-coerce_dates(x = Sys.Date() + c(0, 9), y = read_product_lut())
+coerce_dates(
+  mydates = Sys.Date() + c(0, 9),
+  catalog = read_product_lut(),
+  warn = interactive()
+)
 }
 \arguments{
-\item{x}{vector of Dates}
+\item{mydates}{vector of Dates}
 
-\item{y}{a catalog table of one or more datasets}
+\item{catalog}{a catalog table of one or more datasets}
+
+\item{warn}{logcal, if TRUE thenissue a warning when the input is coerced}
 }
 \value{
 two element Date class object corced to fit within the catalog data range

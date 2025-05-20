@@ -3,11 +3,14 @@
 #' @export
 #' @param mydates vector of Dates
 #' @param catalog a catalog table of one or more datasets
+#' @param warn logcal, if TRUE thenissue a warning when the input is coerced
 #' @return two element Date class object corced to fit within the catalog data range
 coerce_dates = function(mydates = Sys.Date() + c(0,9), 
-                        catalog = read_product_lut()){
+                        catalog = read_product_lut(),
+                        warn = interactive()){
               
-    mydates = as.Date(mydates)            
+    mydates = as.Date(mydates)
+    origdates = mydates
     min_y = as.Date(min(catalog$start_time, na.rm = TRUE))
     max_y = as.Date(max(catalog$end_time, na.rm = TRUE))
     
@@ -16,6 +19,10 @@ coerce_dates = function(mydates = Sys.Date() + c(0,9),
     
     ibig = mydates > max_y
     mydates[ibig] <- max_y
+    
+    if (warn && (!identical(mydates, origdates))){
+      warning("dates have been coerced")
+    }
     
     mydates
 }
@@ -31,13 +38,19 @@ coerce_dates = function(mydates = Sys.Date() + c(0,9),
 #' @param drop_depth logical, if TRUE then drop the depth dimension
 #' @param coerce_time logical, if TRUE then coerce min and max time to fit within
 #'   the catalog offering
+#' @param must_have_time logical, if TRUE and the raster does not have a time 
+#'   dimension (ala only one day) then add one
 #' @param ... other arguments passed to [copernicus::fetch_copernicus()]
-#' @return stars object or NULL
+#' @return a list of stars objects groups by dataset_id and depth.  Each element, 
+#' if not NULL, will have an "andreas" attribute that provides a list with 
+#' dataset_id, depth and time.  We use this because a degenerate dimension (just one 
+#' element) may be dropped, and so the time/depth context may be lost
 fetch_andreas = function(x, 
                          drop_depth = TRUE,
                          time = c(Sys.Date(), as.Date(max(x$end_time))),
                          bb = c(xmin = -180, xmax = 180, ymin = -90, ymax = 90),
                          coerce_time = TRUE,
+                         must_have_time = TRUE, 
                          ...){
   if (FALSE){
     drop_depth = TRUE
@@ -75,6 +88,16 @@ fetch_andreas = function(x,
           } # corece_time?
         } # time is not NULL
         if (interactive()){
+          
+          # debugging notes
+          cat("fetch_dataset dataset_id: ", tbl$dataset_id[1], "\n")
+          cat("fetch_dataset vars: ", dplyr::pull(tbl, dplyr::all_of("short_name")) |>
+                paste(collapse = ", "), "\n")
+          cat("fetch_dataset time: ", format(time, "%Y-%m-%d") |> paste(collapse = ", "), "\n")
+          cat("fetch_dataset depth: ", paste(depth, collapse = ", "), "\n")
+          cat("fetch_dataset bb: ", sprintf("%f, %f, %f, %f", bb[1], bb[2], bb[3], bb[4]), "\n")
+          cat("fetch_dataset filename: ", basename(filename), "\n")
+          
           s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1],
                                            vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
                                            time = time,
@@ -90,20 +113,42 @@ fetch_andreas = function(x,
                                            bb = bb,
                                            ...) 
         }
+        
         if (is.null(s) || inherits(s, "try-error")){
           s = NULL
         } else {
+          # here we add an attribute to alert the user to the time and depth of 
+          # values associated with this array.  They may be dropped (or may not have 
+          # existed in the first place)
+          d = stars::st_dimensions(s)
+          andreas = list(dataset_id = tbl$dataset_id[1],
+                         time = NULL, 
+                         depth = NULL)
+          andreas$depth = if ("depth" %in% names(d)){
+            stars::st_get_dimension_values(s, "depth")
+          } else {
+            depth
+          }
+          andreas$time = if ("time" %in% names(d)){
+            stars::st_get_dimension_values(s, "time")
+          } else {
+            unique(time)
+          }
+          
           s = s |>
-              rlang::set_names(dplyr::pull(tbl, dplyr::all_of("short_name")))
-          if (drop_depth && ("depth" %in% names(stars::st_dimensions(s)))){
-            s = dplyr::slice(s, "depth", 1)
+            rlang::set_names(dplyr::pull(tbl, dplyr::all_of("name")))
+          if (drop_depth && ("depth" %in% names(d))){
+            s = dplyr::slice(s, "depth", 1, drop = TRUE)
           } 
+          # slicing drops (user) attributes, so we add these after
+          # slicing
+          attr(s, "andreas") <- andreas
           s
         }
       }, .keep = TRUE, drop_depth = drop_depth) 
-  ix <- sapply(r, is.null)
-  if (all(ix)) return(NULL)
-  r = copernicus::bind_stars(r[!ix])
+  # ix <- sapply(r, is.null)
+  # if (all(ix)) return(NULL)
+  # r = copernicus::bind_stars(r[!ix])
   r
 }
 

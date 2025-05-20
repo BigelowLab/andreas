@@ -101,14 +101,26 @@ build_database <- function(path, pattern = "*.tif",
 #' @export
 #' @param path character the directory with the database
 #' @param filename character, optional filename
-#' @return a tibble
+#' @return a tibble (possibly empty if the database doesn't exist)
 read_database <- function(path,
                           filename = "database"){
   if (missing(path)) stop("path is required")
   filepath <- file.path(path[1], filename[1])
-  stopifnot(file.exists(filepath))
-  # date var depth
-  suppressMessages(readr::read_csv(filepath, col_types = 'cDccccc'))
+  if(!file.exists(filepath)){
+    db = dplyr::tibble(
+            id = "",
+            date = Sys.Date(),
+            time = "",
+            depth = "",
+            period = "",
+            variable = "",
+            treatment = "") |>
+      dplyr::slice(0)
+  } else {
+    # date var depth
+    db = suppressMessages(readr::read_csv(filepath, col_types = 'cDccccc'))
+  }
+  db
 }
 
 #' Write the file-list database

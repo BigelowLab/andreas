@@ -11,6 +11,7 @@ fetch_andreas(
   time = c(Sys.Date(), as.Date(max(x$end_time))),
   bb = c(xmin = -180, xmax = 180, ymin = -90, ymax = 90),
   coerce_time = TRUE,
+  must_have_time = TRUE,
   ...
 )
 }
@@ -26,10 +27,16 @@ fetch_andreas(
 \item{coerce_time}{logical, if TRUE then coerce min and max time to fit within
 the catalog offering}
 
+\item{must_have_time}{logical, if TRUE and the raster does not have a time 
+dimension (ala only one day) then add one}
+
 \item{...}{other arguments passed to [copernicus::fetch_copernicus()]}
 }
 \value{
-stars object or NULL
+a list of stars objects groups by dataset_id and depth.  Each element, 
+if not NULL, will have an "andreas" attribute that provides a list with 
+dataset_id, depth and time.  We use this because a degenerate dimension (just one 
+element) may be dropped, and so the time/depth context may be lost
 }
 \description{
 A wrapper around [copernicus::fetch_copernicus()] to fetch Copernicus data as
