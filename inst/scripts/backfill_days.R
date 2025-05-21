@@ -11,6 +11,7 @@
 
 suppressPackageStartupMessages({
   library(copernicus)
+  library(andreas)
   library(stars)
   library(dplyr)
   library(charlier)
@@ -19,63 +20,11 @@ suppressPackageStartupMessages({
   library(yaml)
 })
 
-#' @param date a single Date
-#' @param cfg the configuration
-#' @param data_path the data directory
-fetch_this_day = function(date, cfg, data_path, P){
-  charlier::info("backfill_days: fetching %s", format(date, "%Y-%m-%d"))
-  #daynum = format(date, "%d")
-  #if (daynum == "01") charlier::info("backfill_days:fetching %s", format(date, "%Y-%b"))
-  
-  out_path <- copernicus::copernicus_path(cfg$region, 
-                                          cfg$product, 
-                                          format(date, "%Y"),
-                                          format(date, "%m%d"))
-  
-  MISSED_COUNT = 0
 
-  ss = try( P |>
-              fetch_product_by_day(x = date, bb = cfg$bb))
-  if (inherits(ss, "try-error")){
-    MISSED_COUNT <<- MISSED_COUNT + 1
-    charlier::warn("backfill_days: failed to fetch %s", format(date, "%Y-%m-%d"))
-    return(NULL)
-  }
-  isnull = sapply(ss, is.null)
-  ss = ss[!isnull]
-  if (length(ss) == 0){
-    MISSED_COUNT <<- MISSED_COUNT + 1
-    charlier::warn("backfill_days: unable to fetch %s", format(date, "%Y-%m-%d"))
-    return(NULL)
-  }
 
+backfill_dataset = function(tbl, key, path = ".", DB = NULL, cfg = NULL, verbose = interactive()){
   
-  ff = lapply(names(ss),
-              function(dataset){
-                if (is.null(ss[[dataset]])) return(NULL)
-                vars = names(ss[[dataset]])
-                depth = filter(P, dataset_id == dataset) |>
-                  dplyr::filter(short_name %in% vars) |>
-                  dplyr::pull(dplyr::all_of("depth"))
-                time = format(date, "%Y-%m-%dT000000")  
-                per = dataset_period(dataset)
-                treatment = "raw"
-                # productid/region/yyyy/mmdd/datasetid__time_depth_period_var_treatment.ext
-                f = file.path(out_path, 
-                              sprintf("%s__%s_%s_%s_%s_%s.tif", dataset, time, depth, per, vars, treatment))
-                ok = copernicus::make_path(dirname(f) |> unique())
-                for (i in seq_along(names(ss[[dataset]]))) {
-                  stars::write_stars(ss[[dataset]][i], f[i])
-                }
-                f
-              })
-  
-  unlist(ff) %>%
-    copernicus::decompose_filename() 
-}
-
-backfill_dataset = function(tbl, key, path = ".", DB = NULL){
-  
+  if (verbose) cat("backfill_dataset: ", tbl$dataset_id[1], "at", tbl$depth[1], "\n")
   # these are what the catalog offers for this dataset
   # we assume for a given dataset all start/end dates are shared in
   # common
@@ -94,17 +43,52 @@ backfill_dataset = function(tbl, key, path = ".", DB = NULL){
     }
   
   db = tbl |>
-    dplyr::group_by(depth) |>
+    #dplyr::group_by(depth) |>
     dplyr::group_map(
       function(tab, quay){
         lapply(seq_along(missing_dates),
           function(idate){
-            time = c(missing_dates[i], missing_dates[i])
-            depth = c(tb$mindepth, tbl$maxdepth)
+            if (verbose){
+              cat("  backfill_dataset: ", format(missing_dates[idate]), "\n")
+            }
+            time = c(missing_dates[idate], missing_dates[idate])
+            depth = c(tab$mindepth[1], tab$maxdepth[2])
             x = andreas::fetch_andreas(tab,
-                                       depth = depth,
-                                       time = time)
-            
+                                       bb = cfg$bb,
+                                       time = time)[[1]]
+            dimx = stars::st_dimensions(x)
+            andreas = attr(x, "andreas")
+            names(x) <- tab$name
+            period = copernicus::dataset_period(tab$dataset_id[1])
+            treatment = "raw"
+            d = stars::st_dimensions(x)
+            time = andreas$time |> format("%Y-%m-%dT00000")
+            db = tab |> 
+              rowwise()|>
+              group_map(
+                function(p, k){
+                  nm = p$short_name
+                  fname = sprintf("%s__%s_%s_%s_%s_%s.tif", 
+                                  p$dataset_id, 
+                                  time, 
+                                  p$depth, 
+                                  period, 
+                                  nm, 
+                                  treatment)
+                  db = decompose_filename(fname)
+                  ofiles = compose_filename(db, path)
+                  
+                  for (i in seq_along(fname)){
+                    ok = make_path(dirname(ofiles[i]))
+                    s = if ("time" %in% names(dimx)){
+                      stars::write_stars(dplyr::slice(x[nm], "time", i), ofiles[i]) 
+                    } else {
+                      stars::write_stars(x[nm], ofiles[i]) 
+                    }
+                  }
+                  db
+                } ) |>
+              dplyr::bind_rows()
           }) |>
           dplyr::bind_rows()
       }, .keep = TRUE) |>
@@ -116,7 +100,8 @@ backfill_dataset = function(tbl, key, path = ".", DB = NULL){
 main = function(cfg = NULL){
  
   P = andreas::read_product_lut(cfg$product) |>
-    dplyr::filter(fetch == "yes")
+    dplyr::filter(fetch == "yes") |>
+    dplyr::group_by(dataset_id, depth)
   
   path = copernicus::copernicus_path(cfg$region, cfg$product) |>
     copernicus::make_path()
@@ -127,8 +112,7 @@ main = function(cfg = NULL){
   # compare the stored dates with those served
   # retrieve just the missing ones
   newdb = P |>
-    dplyr::group_by(.data$dataset_id) |>
-    dplyr::group_map(backfill_dataset, path = path, DB = DB, .keep = TRUE) |>
+    dplyr::group_map(backfill_dataset, path = path, DB = DB, cfg = cfg, .keep = TRUE) |>
     dplyr::bind_rows() |>
     andreas::append_database(product_path)
   
@@ -142,7 +126,7 @@ Args = argparser::arg_parser("Backfill copernicus data",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "fetch-day-GLOBAL_MULTIYEAR_BGC_001_029.yaml")) |>
+                                         "world-GLOBAL_MULTIYEAR_BGC_001_029.yaml")) |>
   parse_args()
 
 

@@ -12,6 +12,7 @@ fetch_andreas(
   bb = c(xmin = -180, xmax = 180, ymin = -90, ymax = 90),
   coerce_time = TRUE,
   must_have_time = TRUE,
+  verbose = FALSE,
   ...
 )
 }
@@ -29,6 +30,8 @@ the catalog offering}
 
 \item{must_have_time}{logical, if TRUE and the raster does not have a time 
 dimension (ala only one day) then add one}
+
+\item{verbose}{logical, if TRUE be verbose}
 
 \item{...}{other arguments passed to [copernicus::fetch_copernicus()]}
 }

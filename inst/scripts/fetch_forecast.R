@@ -21,11 +21,7 @@
 
 suppressPackageStartupMessages({
   library(copernicus)
-  if (interactive()){
-   devtools::load_all() 
-  } else {
-    library(andreas)
-  }
+  library(andreas)
   library(stars)
   library(dplyr)
   library(charlier)
@@ -35,7 +31,7 @@ suppressPackageStartupMessages({
 })
 
 
-#' Fetch variable for one dataset
+#' Fetch variable for one dataset_id+depth group (multiple vars ok)
 #' @param tbl one or more rows of product lut for one dataset
 #' @param key likely empty tibble
 #' @param dates the dates to retrieve
@@ -90,6 +86,8 @@ fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
 }
 
 
+# main iterates over each datset_id+depth group, accumulates
+# a database of new data, and adds it to the existing.
 main = function(date = Sys.Date(), cfg = NULL){
   
   if (!inherits(date, "Date")) date = as.Date(date)
@@ -101,8 +99,6 @@ main = function(date = Sys.Date(), cfg = NULL){
     group_by(dataset_id, depth) 
 
   out_path <- copernicus::copernicus_path(cfg$region, cfg$product)
-  
-  if (FALSE) tbl = filter(P, dataset_id == "cmems_mod_glo_phy_anfc_0.083deg_P1D-m")
   
   
   db = P |>

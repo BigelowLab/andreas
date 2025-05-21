@@ -40,6 +40,7 @@ coerce_dates = function(mydates = Sys.Date() + c(0,9),
 #'   the catalog offering
 #' @param must_have_time logical, if TRUE and the raster does not have a time 
 #'   dimension (ala only one day) then add one
+#' @param verbose logical, if TRUE be verbose
 #' @param ... other arguments passed to [copernicus::fetch_copernicus()]
 #' @return a list of stars objects groups by dataset_id and depth.  Each element, 
 #' if not NULL, will have an "andreas" attribute that provides a list with 
@@ -51,18 +52,20 @@ fetch_andreas = function(x,
                          bb = c(xmin = -180, xmax = 180, ymin = -90, ymax = 90),
                          coerce_time = TRUE,
                          must_have_time = TRUE, 
+                         verbose = FALSE,
                          ...){
   if (FALSE){
     drop_depth = TRUE
     time = c(Sys.Date(), as.Date(max(x$end_time)))
     bb = c(xmin = -77, xmax = -42.5, ymin = 36.5, ymax = 56.7)
     coerce_time = TRUE
+    verbose = TRUE
   }
   r = x |>
     dplyr::group_by(.data$dataset_id, .data$depth) |>
     dplyr::group_map(
       function(tbl, key, drop_depth = TRUE){
-        if (interactive()) cat("fetch_andreas: ", tbl$dataset_id[1], "\n")
+        if (interactive() && verbose) cat("fetch_andreas: ", tbl$dataset_id[1], "\n")
         filename = tempfile(fileext = ".nc")
         depth = if(is.na(tbl$mindepth[1])) {
             NULL
@@ -87,23 +90,23 @@ fetch_andreas = function(x,
             } # check max time
           } # corece_time?
         } # time is not NULL
-        if (interactive()){
+        if (interactive() && verbose){
           
           # debugging notes
-          cat("fetch_dataset dataset_id: ", tbl$dataset_id[1], "\n")
-          cat("fetch_dataset vars: ", dplyr::pull(tbl, dplyr::all_of("short_name")) |>
+          cat("  fetch_dataset dataset_id: ", tbl$dataset_id[1], "\n")
+          cat("  fetch_dataset vars: ", dplyr::pull(tbl, dplyr::all_of("short_name")) |>
                 paste(collapse = ", "), "\n")
-          cat("fetch_dataset time: ", format(time, "%Y-%m-%d") |> paste(collapse = ", "), "\n")
-          cat("fetch_dataset depth: ", paste(depth, collapse = ", "), "\n")
-          cat("fetch_dataset bb: ", sprintf("%f, %f, %f, %f", bb[1], bb[2], bb[3], bb[4]), "\n")
-          cat("fetch_dataset filename: ", basename(filename), "\n")
+          cat("  fetch_dataset time: ", format(time, "%Y-%m-%d") |> paste(collapse = ", "), "\n")
+          cat("  fetch_dataset depth: ", paste(depth, collapse = ", "), "\n")
+          cat("  fetch_dataset bb: ", sprintf("%f, %f, %f, %f", bb[1], bb[2], bb[3], bb[4]), "\n")
+          cat("  fetch_dataset filename: ", basename(filename), "\n")
           
           s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1],
                                            vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
                                            time = time,
                                            depth = depth,
                                            ofile = filename,
-                                           bb = bb) 
+                                           bb = bb)
         } else {
           s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1], 
                                            vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
@@ -111,7 +114,7 @@ fetch_andreas = function(x,
                                            depth = depth,
                                            ofile = filename,
                                            bb = bb,
-                                           ...) 
+                                           ...)
         }
         
         if (is.null(s) || inherits(s, "try-error")){
@@ -146,9 +149,7 @@ fetch_andreas = function(x,
           s
         }
       }, .keep = TRUE, drop_depth = drop_depth) 
-  # ix <- sapply(r, is.null)
-  # if (all(ix)) return(NULL)
-  # r = copernicus::bind_stars(r[!ix])
+
   r
 }
 
