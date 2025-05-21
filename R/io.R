@@ -51,7 +51,7 @@ read_copernicus = function(db, path){
             rlang::set_names(tbl$variable[1])
         }
       }, .keep = TRUE) |>
-    bind_stars()
+    copernicus::bind_stars()
 }
 
 #' @export

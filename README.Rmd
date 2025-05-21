@@ -9,6 +9,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Andreas (Andrew) Copernicus was the lesser known brother of [Nicolaus Copernicus](https://en.wikipedia.org/wiki/Nicolaus_Copernicus).  This package serves as suite of functions and scripts to access and manage data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products).  This package leverages the tools provided by the [`copernicus` R package](https://github.com/BigelowLab/copernicus).
 
+This document is divided into two parts: "Fetching Remote Data" and "Working with Local Archives".  You don't need to fetch data is you already have a local archive.
+
+# Fetching Remote Data
+
+You only need this part if you are creating or maintaining a local archive of data.  If you already have the data then skip ahead to "Working with Local Archives"
 
 ## Look up tables
 
@@ -43,7 +48,7 @@ To be super clear, somebody has to maintain a look up table - it requires some m
 
 ## Fetch data
 
-Requests for data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) are as simple as filtering the above LUT for the desired records (rows).  We use `fetch_andreas()` for this, but keep in mind that it is not always possible to bind attrributes (variables in a stars object) if variables are of varying dimensionality - in particular if they have a depth dimension when retrieved in native form.  
+Requests for data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) are as simple as filtering the above LUT for the desired records (rows).  We use `fetch_andreas()` for this, but keep in mind that it is not always possible to bind attributes (variables in a stars object) if variables are of varying dimensionality - in particular if they have a depth dimension when retrieved in native form.  To resolve this, the returned value is a list of stars objects grouped by dataset_id and depth.
 
 ```{r}
 x = lut |>
@@ -68,14 +73,21 @@ Here you can see that data set id and the rest of the identifiers are separated 
 
 **NOTE** Don't forget to [set your root data path](https://github.com/BigelowLab/copernicus?tab=readme-ov-file#configure-data-path.).
 
-First we define an output path for the Gulf of Maine data.  The path isn't created until data is written to it.  Then we simply call fetch and write individual GeoTIFF files into a database structure.  Note that we provide an identifier that provides the provenance of the data.  We receive, in turn, a table that serves as a database.
+First we define an output path for the Gulf of Maine data.  The path isn't created until data is written to it.  Then we simply call fetch and write individual GeoTIFF files into a database structure.  Note that we provide an identifier that provides the provenance of the data - that's what the `attrs` is all about.  We receive, in turn, a table that serves as a database.
 
 
 
-```{r archive}
-x = stars::read_stars(ofile) |>
-  dplyr::slice("depth", 1)
-dates = stars::st_get_dimension_values(x, "time")
+```
+path = copernicus::copernicus_path("gom", "GLOBAL_ANALYSISFORECAST_PHY_001_024")
+x = x[[1]]
+attrs = attr(x, "andreas")
+dataset_id = attrs$dataset_id
+dates = attrs$time
+```
+
+Now we step through each variable in the stars object.
+
+```
 db = lapply(names(x),
   function(nm){
     db = sprintf("%s__%s_%s_%s_%s_%s%s",
@@ -97,9 +109,19 @@ db = lapply(names(x),
 
 Since this is the first time you have downloaded and archived data, be sure to save the database.
 
-```{r write_database}
+```
 write_database(db, path)
 ```
+
+
+# Working with Local Archives
+
+## The local archive
+
+The local archive is a collection of one or more products (and their datasets) for a particular region of the world.  For example, we have an archive for the Northwest Atlantic ("nwa").  The archive is a directory called "nwa" withing which there is one subdirectory for each product.  Within that product directory there may be series of subdirectories organized by year (*e.g.* "2022") and then by month-day (*e.g.* "0521").  Within the month-day subdirectories there will be one or more GeoTIFF files (one file for each variable).  
+
+At the product level you will find a text-based file called "database".  It is a comman delimited file that (in theory) keeps track of the files that have been archived.  We leverage this database to quickly find a subset of the entire database.
+
 
 ### Using the database
 
@@ -108,6 +130,14 @@ The database is very light and easy to filter for just the records you might nee
 Let's walk through reading the database, filtering it for a subset, reading the files and finally displaying.
 
 ```{r database, message = FALSE}
+suppressPackageStartupMessages({
+  library(andreas)
+  library(copernicus)
+  library(dplyr)
+  library(stars)
+})
+
+path = copernicus::copernicus_path("nwa", "GLOBAL_ANALYSISFORECAST_PHY_001_024")
 db <- andreas::read_database(path) |>
   dplyr::glimpse()
 ```
@@ -116,15 +146,14 @@ Now we can read in the files.
 
 ```{r read_files}
 s = db |>
-  dplyr::slice(1:4) |>
-  read_copernicus(path)
+  dplyr::slice(1:20) |>
+  andreas::read_andreas(path)
 s
 ```
 
-The database directory structure looks like this (requires [fs package](https://CRAN.R-project.org/package=fs)) which you won't need just to use copernicus).
-
-```{r dir_tree}
-fs::dir_tree(path)
-```
 
 It may look complicated, but this permits the storage of multiple datasets per product, and is a very flexible system.
+
+```{r count}
+db |> dplyr::count(id, depth, variable)
+```
