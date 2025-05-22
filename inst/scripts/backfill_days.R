@@ -114,7 +114,7 @@ main = function(cfg = NULL){
   newdb = P |>
     dplyr::group_map(backfill_dataset, path = path, DB = DB, cfg = cfg, .keep = TRUE) |>
     dplyr::bind_rows() |>
-    andreas::append_database(product_path)
+    andreas::append_database(path)
   
   
   return(0)
