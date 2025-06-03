@@ -24,7 +24,7 @@ a table with the following
 * short_name
 * standard_name
 * units 
-* depth really a depth name "sur", "bot", "mld" or NA but could be a number (as character())
+* depth really a depth name "sur", "bot", "mld", "zos" or NA but could be a number (as character())
 * fetch   "yes", "no" or NA
 * mindepth for `copernicusmarine` CLI request
 * maxdepth for `copernicusmarine` CLI request
