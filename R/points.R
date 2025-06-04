@@ -17,6 +17,7 @@ read_buoys = function(
 
 #' Extract point data from a stars object
 #' 
+#' @export
 #' @param x stars object (with or without time dimension)
 #' @param y sf point data
 #' @param form chr one of either "long" (the default) or "wide" to control 
