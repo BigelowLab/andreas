@@ -15,6 +15,7 @@ Imports:
   copernicus,
   snakecase,
   dplyr,
+  tidyr,
   sf,
   stars,
   readr
