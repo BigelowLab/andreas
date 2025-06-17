@@ -2,7 +2,7 @@
 #' 
 #' @export
 #' @param product_id chr, the product identifier.  The associated file must exist
-#' @param description table, the table produced by [copernicus::read_product_description()] for
+#' @param description table, the table produced by [nicolaus::read_catalog] for
 #'   the specified `product_id`
 #' @return a table with the following
 #' * product_id
@@ -19,9 +19,9 @@
 #' * start_time known data service availability
 #' * end_time known data service availability
 read_product_lut = function(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
-                            description = copernicus::read_product_description(product_id)){
+                            description = nicolaus::read_catalog()){
   
-  filename = copernicus_path("lut", paste0(product_id[1], ".csv"))
+  filename = copernicus::copernicus_path("lut", paste0(product_id[1], ".csv"))
   if(!file.exists(filename)) stop("product lut file not found: ", filename)
   lut = readr::read_csv(filename, show_col_types = FALSE) |> 
     dplyr::mutate(name = snakecase::to_lower_camel_case(.data$short_name),
@@ -34,7 +34,7 @@ read_product_lut = function(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
                                                       "standard_name"))) |>
                        dplyr::filter(.data$dataset_id %in% lut$dataset_id & .data$short_name %in% lut$short_name), 
                      by = c("dataset_id", "short_name")) |>
-    dplyr::mutate(product_id = product_id[1], .before = 1)
+    dplyr::relocate(dplyr::all_of("product_id"), .before = dplyr::all_of("dataset_id"))
   
 }
 
@@ -101,7 +101,7 @@ read_product_lut = function(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
 #' * mindepth 0
 #' * maxdepth 1
 create_lut <- function(x = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
-                       catalog = read_product_catalog(),
+                       catalog = nicolaus::read_catalog(),
                        save_lut = FALSE){
   
   lut = catalog |>
@@ -114,6 +114,13 @@ create_lut <- function(x = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
   if (save_lut) readr::write_csv(lut, copernicus_path("lut", paste0(x,".csv")))
   lut
 }
+
+
+# How can I add a LUT by dataset_id?  For instance, I want to add
+# 'global-analysis-forecast-phy-001-024-statics' which has static depthy 
+# variables like mask, deptho (depth below geoid) and mdt (elevation about geoid)
+# 
+
 
 # Read a regional LUT ala ("nwa_lut.csv")
 # 

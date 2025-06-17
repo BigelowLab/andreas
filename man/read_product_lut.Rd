@@ -6,13 +6,13 @@
 \usage{
 read_product_lut(
   product_id = "GLOBAL_ANALYSISFORECAST_PHY_001_024",
-  description = copernicus::read_product_description(product_id)
+  description = nicolaus::read_catalog()
 )
 }
 \arguments{
 \item{product_id}{chr, the product identifier.  The associated file must exist}
 
-\item{description}{table, the table produced by [copernicus::read_product_description()] for
+\item{description}{table, the table produced by [nicolaus::read_catalog] for
 the specified `product_id`}
 }
 \value{

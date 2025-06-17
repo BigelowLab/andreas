@@ -6,7 +6,7 @@
 \usage{
 create_lut(
   x = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
-  catalog = read_product_catalog(),
+  catalog = nicolaus::read_catalog(),
   save_lut = FALSE
 )
 }
