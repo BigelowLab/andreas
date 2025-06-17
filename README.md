@@ -45,7 +45,7 @@ lut = read_product_lut(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024') |>
 ```
 
     ## Rows: 20
-    ## Columns: 13
+    ## Columns: 14
     ## $ product_id    <chr> "GLOBAL_ANALYSISFORECAST_PHY_001_024", "GLOBAL_ANALYSISF…
     ## $ dataset_id    <chr> "cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m", "cmems_mod_…
     ## $ dataset_name  <chr> "daily mean fields from Global Ocean Physics Analysis an…
@@ -58,7 +58,8 @@ lut = read_product_lut(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024') |>
     ## $ mindepth      <dbl> 0, 0, 0, 0, 0, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
     ## $ maxdepth      <dbl> 1, 1, 1, 1, 1, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
     ## $ start_time    <dttm> 2022-06-01, 2022-06-01, 2022-06-01, 2022-06-01, 2022-06…
-    ## $ end_time      <dttm> 2025-04-30, 2025-04-30, 2025-04-30, 2025-04-30, 2025-04…
+    ## $ end_time      <dttm> 2025-06-25, 2025-06-25, 2025-06-25, 2025-06-25, 2025-06…
+    ## $ n_depth       <dbl> 50, 50, 50, 50, 50, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
 
 Some of the variables are manually curated: `depth`, `fetch`, `mindepth`
 and `maxdepth`. The balance are derived from the coperncius catalog
@@ -108,39 +109,38 @@ x
 ```
 
     ## [[1]]
-    ## stars object with 2 dimensions and 2 attributes
+    ## stars object with 3 dimensions and 2 attributes
     ## attribute(s):
-    ##                Min.       1st Qu.      Median        Mean     3rd Qu.     Max.
-    ## uo [m/s] -1.0292341  0.0003720922  0.05478627  0.07855045 0.126616210 1.612678
-    ## vo [m/s] -0.7737401 -0.0926538333 -0.04916847 -0.02029832 0.002092603 1.027719
-    ##          NA's
-    ## uo [m/s] 2680
-    ## vo [m/s] 2680
-    ## dimension(s):
-    ##   from  to offset    delta x/y
-    ## x    1 109 -72.04  0.08333 [x]
-    ## y    1  85  46.04 -0.08333 [y]
-    ## 
-    ## [[2]]
-    ## stars object with 2 dimensions and 1 attribute
-    ## attribute(s):
-    ##                 Min.  1st Qu.   Median     Mean  3rd Qu.     Max. NA's
-    ## thetao [°C] 2.274157 5.925387 7.213414 9.012862 11.44849 21.53495 2680
-    ## dimension(s):
-    ##   from  to offset    delta x/y
-    ## x    1 109 -72.04  0.08333 [x]
-    ## y    1  85  46.04 -0.08333 [y]
-    ## 
-    ## [[3]]
-    ## stars object with 3 dimensions and 1 attribute
-    ## attribute(s):
-    ##                Min. 1st Qu.   Median     Mean  3rd Qu.     Max. NA's
-    ## mlotst [m] 5.955824 20.2264 26.19972 28.34019 32.08642 120.7241 2680
+    ##                Min.     1st Qu.     Median       Mean    3rd Qu.      Max. NA's
+    ## uo [m/s] -0.3278423 -0.05054242 0.01493066 0.02080005 0.06699045 1.4672947 5360
+    ## vo [m/s] -0.8702940 -0.00322425 0.03606658 0.04744518 0.07709160 0.7855048 5360
     ## dimension(s):
     ##      from  to         offset    delta  refsys x/y
     ## x       1 109         -72.04  0.08333      NA [x]
     ## y       1  85          46.04 -0.08333      NA [y]
-    ## time    1   1 2025-04-30 UTC       NA POSIXct
+    ## time    1   2 2025-06-17 UTC   1 days POSIXct    
+    ## 
+    ## [[2]]
+    ## stars object with 3 dimensions and 1 attribute
+    ## attribute(s):
+    ##                 Min.  1st Qu.   Median     Mean  3rd Qu.    Max. NA's
+    ## thetao [°C] 9.432176 13.37275 14.86423 16.12185 19.16676 26.1502 5360
+    ## dimension(s):
+    ##      from  to         offset    delta  refsys x/y
+    ## x       1 109         -72.04  0.08333      NA [x]
+    ## y       1  85          46.04 -0.08333      NA [y]
+    ## time    1   2 2025-06-17 UTC   1 days POSIXct    
+    ## 
+    ## [[3]]
+    ## stars object with 3 dimensions and 1 attribute
+    ## attribute(s):
+    ##                Min.  1st Qu.   Median     Mean  3rd Qu.     Max. NA's
+    ## mlotst [m] 6.700655 10.46302 10.46302 12.18801 11.29948 34.88145 5360
+    ## dimension(s):
+    ##      from  to         offset    delta  refsys x/y
+    ## x       1 109         -72.04  0.08333      NA [x]
+    ## y       1  85          46.04 -0.08333      NA [y]
+    ## time    1   2 2025-06-17 UTC   1 days POSIXct
 
 ## Archiving data
 
@@ -257,7 +257,7 @@ db <- andreas::read_database(path) |>
     ## $ id        <chr> "cmems_mod_glo_phy_anfc_0.083deg_P1D-m", "cmems_mod_glo_phy_…
     ## $ date      <date> 2022-06-01, 2022-06-01, 2022-06-01, 2022-06-01, 2022-06-01,…
     ## $ time      <chr> "000000", "000000", "000000", "000000", "000000", "000000", …
-    ## $ depth     <chr> "bot", "bot", "bot", "mld", "sur", "sur", "sur", "sur", "sur…
+    ## $ depth     <chr> "bot", "bot", "bot", "mld", "zos", "sur", "sur", "sur", "sur…
     ## $ period    <chr> "day", "day", "day", "day", "day", "day", "day", "day", "day…
     ## $ variable  <chr> "pbo", "sob", "tob", "mlotst", "zos", "uo", "vo", "so", "the…
     ## $ treatment <chr> "raw", "raw", "raw", "raw", "raw", "raw", "raw", "raw", "raw…
@@ -320,4 +320,28 @@ db |> dplyr::count(id, depth, variable)
     ##  7 cmems_mod_glo_phy_anfc_0.083deg_P1D-m        bot   sob       1062
     ##  8 cmems_mod_glo_phy_anfc_0.083deg_P1D-m        bot   tob       1062
     ##  9 cmems_mod_glo_phy_anfc_0.083deg_P1D-m        mld   mlotst    1062
-    ## 10 cmems_mod_glo_phy_anfc_0.083deg_P1D-m        sur   zos       1062
+    ## 10 cmems_mod_glo_phy_anfc_0.083deg_P1D-m        zos   zos       1062
+
+### Static variables
+
+Some products have static variables (model coordinates, depth, mask,
+etc). We don’t retain any on a usual basis except for `deptho` and
+`mask`.
+
+You can read static variables easily by providing just the variable
+names and the data path.
+
+``` r
+static = read_static(name = c("mask", "deptho"), path = path)
+static
+```
+
+    ## stars object with 2 dimensions and 2 attributes
+    ## attribute(s):
+    ##            Min.  1st Qu.   Median         Mean  3rd Qu.     Max.  NA's
+    ## mask    0.00000   0.0000    1.000    0.6599931    1.000    1.000     0
+    ## deptho  7.92956 222.4752 3597.032 2797.7241103 4833.291 5727.917 34288
+    ## dimension(s):
+    ##   from  to offset    delta refsys point x/y
+    ## x    1 415 -77.04  0.08333 WGS 84 FALSE [x]
+    ## y    1 243  56.71 -0.08333 WGS 84 FALSE [y]

@@ -157,3 +157,14 @@ It may look complicated, but this permits the storage of multiple datasets per p
 ```{r count}
 db |> dplyr::count(id, depth, variable)
 ```
+
+### Static variables
+
+Some products have static variables (model coordinates, depth, mask, etc).  We don't retain any on a usual basis except for `deptho` and `mask`.
+
+You can read static variables easily by providing just the variable names and the data path.
+
+```{r}
+static = read_static(name = c("mask", "deptho"), path = path)
+static
+```
