@@ -62,7 +62,7 @@ backfill_dataset = function(tbl, key, path = ".", DB = NULL, cfg = NULL, verbose
             period = copernicus::dataset_period(tab$dataset_id[1])
             treatment = "raw"
             d = stars::st_dimensions(x)
-            time = andreas$time |> format("%Y-%m-%dT00000")
+            time = andreas$time |> format("%Y-%m-%dT000000")
             db = tab |> 
               rowwise()|>
               group_map(

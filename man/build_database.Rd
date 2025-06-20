@@ -4,7 +4,13 @@
 \alias{build_database}
 \title{Construct a database tibble give a data path}
 \usage{
-build_database(path, pattern = "*.tif", save_db = FALSE, ...)
+build_database(
+  path,
+  pattern = "*.tif",
+  save_db = FALSE,
+  exclude = "static",
+  ...
+)
 }
 \arguments{
 \item{path}{character the directory to catalog}
@@ -12,6 +18,8 @@ build_database(path, pattern = "*.tif", save_db = FALSE, ...)
 \item{pattern}{character, the filename pattern (as glob) to search for}
 
 \item{save_db}{logical, if TRUE save the database via [write_database]}
+
+\item{exclude}{chr, one or more character patterns to exclude}
 
 \item{...}{other arguments for \code{\link{decompose_filename}}}
 }

@@ -72,28 +72,47 @@ decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__
 #' @export
 #' @param path character the directory to catalog
 #' @param pattern character, the filename pattern (as glob) to search for
+#' @param exclude chr, one or more character patterns to exclude
 #' @param save_db logical, if TRUE save the database via [write_database]
 #' @param ... other arguments for \code{\link{decompose_filename}}
 #' @return tibble database
 build_database <- function(path, pattern = "*.tif", 
                            save_db = FALSE, 
+                           exclude = "static",
                            ...){
   if (missing(path)) stop("path is required")
-  if (requireNamespace("fs", quietly = TRUE)){
-    db = fs::dir_ls(path[1],
-                     regexp = utils::glob2rx(pattern),
-                     recurse = TRUE,
-                     type = "file") |>
-      decompose_filename(...)
-  } else {
-    db = list.files(path[1], pattern = utils::glob2rx(pattern),
-                    recursive = TRUE, full.names = TRUE) |>
-      decompose_filename(...)
-  }
- 
+  ff = list_files(path, pattern = pattern, exclude = exclude)
+  db = decompose_filename(ff)
   if (save_db) db = write_database(db, path)
   return(db)
 }
+
+#' List files for a database
+#'
+#' @export
+#' @param path character the directory to catalog
+#' @param pattern character, the filename pattern (as glob) to search for
+#' @param exclude chr, one or more character patterns to exclude
+#' @return file list
+list_files <- function(path,
+                           pattern = "*.tif", 
+                           exclude = "static"){
+  if (missing(path)) stop("path is required")
+  if (requireNamespace("fs", quietly = TRUE)){
+    ff = fs::dir_ls(path[1],
+                    regexp = utils::glob2rx(pattern),
+                    recurse = TRUE,
+                    type = "file") 
+  } else {
+    ff = list.files(path[1], pattern = utils::glob2rx(pattern),
+                    recursive = TRUE, full.names = TRUE) 
+  }
+  if (length(exclude) > 0){
+    ff = ff[!mgrepl(exclude, ff, fixed = TRUE)]
+  }
+  return(ff)
+}
+
 
 
 #' Read a file-list database

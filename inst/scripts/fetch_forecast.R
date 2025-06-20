@@ -55,7 +55,7 @@ fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
   period = copernicus::dataset_period(tbl$dataset_id[1])
   treatment = "raw"
   d = stars::st_dimensions(x)
-  time = andreas$time |> format("%Y-%m-%dT00000")
+  time = andreas$time |> format("%Y-%m-%dT000000")
   db = tbl |> 
     rowwise()|>
     group_map(
