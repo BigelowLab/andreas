@@ -233,12 +233,15 @@ missing_records = function(x,
 #' @param path chr, the root data directory
 #' @param pattern chr, database filename regex pattern to search for
 #' @return database paths relative to the root path
-list_databases = function(path = copernicus_path(),
+list_databases = function(path = copernicus::copernicus_path(),
                           pattern = "^database$"){
-  if (requireNamespace("fs", quietly = TRUE)){
-    ff = fs::dir_ls(path, regexp = pattern, recurse = TRUE, type = "file")
-  } else {
-    ff = list.files(path, pattern = pattern, full.names = TRUE, recursive = TRUE)
-  }
+  
+    ff = lapply(list.dirs(path, full.names = TRUE, recursive = FALSE),
+                function(p) {
+                  dd = list.dirs(p, full.names = TRUE, recursive = FALSE)
+                  list.files(dd, pattern = pattern, full.names = TRUE, recursive = FALSE) |>
+                    unlist()
+                } ) |>
+      unlist()
   sub(paste0(path,.Platform$file.sep), "", dirname(ff))
 }

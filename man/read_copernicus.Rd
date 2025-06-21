@@ -5,14 +5,20 @@
 \alias{read_andreas}
 \title{Read one or more copernicus files}
 \usage{
-read_copernicus(db, path)
+read_copernicus(db, path, crs = 4326, bb = NULL)
 
-read_andreas(db, path)
+read_andreas(db, path, ...)
 }
 \arguments{
 \item{db}{tibble, database of selected records}
 
 \item{path}{char, the path to the data set}
+
+\item{crs}{value to set the CRS}
+
+\item{bb}{NULL or and object used for cropping}
+
+\item{...}{other arguments for `stars::st_crop`}
 }
 \value{
 stars object

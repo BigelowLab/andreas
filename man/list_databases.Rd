@@ -4,7 +4,7 @@
 \alias{list_databases}
 \title{Retrieve a list of databases}
 \usage{
-list_databases(path = copernicus_path(), pattern = "^database$")
+list_databases(path = copernicus::copernicus_path(), pattern = "^database$")
 }
 \arguments{
 \item{path}{chr, the root data directory}

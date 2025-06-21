@@ -30,8 +30,11 @@ write_andreas = function(x, db, path = ".", check_path = TRUE){
 #' @export
 #' @param db tibble, database of selected records
 #' @param path char, the path to the data set
+#' @param crs value to set the CRS
+#' @param bb NULL or and object used for cropping
+#' @param ... other arguments for `stars::st_crop`
 #' @return stars object
-read_copernicus = function(db, path){
+read_copernicus = function(db, path, crs = 4326, bb = NULL){
   
   db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
                        format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
@@ -39,7 +42,7 @@ read_copernicus = function(db, path){
   # read each variable
   # check that each variable has the same time-dim
   # if ok then bind, otherwise error
-  db |>
+  r = db |>
     dplyr::group_by(.data$variable) |>
     dplyr::group_map(
       function(tbl, key){
@@ -51,13 +54,21 @@ read_copernicus = function(db, path){
             rlang::set_names(tbl$variable[1])
         }
       }, .keep = TRUE) |>
-    copernicus::bind_stars()
+    copernicus::bind_stars() |>
+    sf::st_set_crs(crs)
+  
+  if (!is.null(bb)) {
+    orig = sf::sf_use_s2(FALSE)  # in case the r bb extends beyond a pole
+    r = stars::st_crop(r, bb, ...)
+    dummy = sf::sf_use_s2(orig)
+  }
+  r
 }
 
 #' @export
 #' @rdname read_copernicus
-read_andreas = function(db, path){
-  read_copernicus(db, path)
+read_andreas = function(db, path, ...){
+  read_copernicus(db, path, ...)
 }
 
 
