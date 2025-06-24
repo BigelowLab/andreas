@@ -8,5 +8,6 @@ configs=(fetch-day-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml fetch-day-GLOBAL_ANA
 CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[0]} >> ${LOG}"
 eval ${CMD}
 
+# PHY for a region
 CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[1]} >> ${LOG}"
 eval ${CMD}

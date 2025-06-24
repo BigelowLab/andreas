@@ -89,7 +89,7 @@ Args = argparser::arg_parser("Build a copernicus database",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
+                                         "chfc-GLOBAL_MULTIYEAR_PHY_001_030.yaml")) |>
   parse_args()
 
 
