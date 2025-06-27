@@ -4,6 +4,7 @@
 \name{reexports}
 \alias{reexports}
 \alias{copernicus_path}
+\alias{make_path}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -11,6 +12,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{copernicus}{\code{\link[copernicus]{copernicus_path}}}
+  \item{copernicus}{\code{\link[copernicus]{copernicus_path}}, \code{\link[copernicus]{make_path}}}
 }}
 

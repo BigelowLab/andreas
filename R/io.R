@@ -9,6 +9,9 @@
 #'   as `path`.
 #' @return the input stars object
 write_copernicus = function(x, db, path = ".", check_path = TRUE){
+  if (inherits(db, "merged") || "product" %in% colnames(db)) {
+    stop("writing from a merged database not permitted")
+  }
   fname = compose_filename(db, path)
   if (check_path) ok = make_path(dirname(fname))
   stars::write_stars(x, fname)
@@ -35,7 +38,6 @@ write_andreas = function(x, db, path = ".", check_path = TRUE){
 #' @param ... other arguments for `stars::st_crop`
 #' @return stars object
 read_copernicus = function(db, path, crs = 4326, bb = NULL){
-  
   db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
                        format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
   db$file = compose_filename(db, path)

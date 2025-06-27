@@ -2,11 +2,11 @@
 % Please edit documentation in R/static.R
 \name{read_static}
 \alias{read_static}
-\title{Read static variables, possibly subsetting with a bounding box}
+\title{Read static variables for a regional dataset, possibly subsetting with a bounding box}
 \usage{
 read_static(
   name = c("deptho", "mask"),
-  path = copernicus::copernicus_path("nwa", "GLOBAL_ANALYSISFORECAST_PHY_001_024"),
+  path = copernicus::copernicus_path("gom", "GLOBAL_ANALYSISFORECAST_PHY_001_024"),
   bb = NULL
 )
 }
@@ -22,5 +22,8 @@ bounding box can be derived. NULL to skip.}
 stars object
 }
 \description{
-Read static variables, possibly subsetting with a bounding box
+*N.B.* When combining these with other Copernicus layers using `c()` you may 
+encounter a message that says R doesn't know how to combine them.  Just increase
+the `tolerance` value to `1e-6` and all will be well.  I can't explain why this
+mismatch occurs, but this is the solution.
 }

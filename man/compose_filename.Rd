@@ -2,12 +2,12 @@
 % Please edit documentation in R/database.R
 \name{compose_filename}
 \alias{compose_filename}
-\title{Compose a file name from a database}
+\title{Compose a file name from a database (possibly merged)}
 \usage{
 compose_filename(x, path = ".", ext = ".tif")
 }
 \arguments{
-\item{x}{database (tibble), with date, var, depth}
+\item{x}{database (tibble) possibly merged, with date, var, depth}
 
 \item{path}{character, the root path for the file name}
 
@@ -18,5 +18,5 @@ character vector of file names in form
         \code{<path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext}
 }
 \description{
-Compose a file name from a database
+Compose a file name from a database (possibly merged)
 }

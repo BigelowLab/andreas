@@ -17,7 +17,10 @@ catalog = tibble(
                  "cmems_mod_glo_phy_anfc_0.083deg_static",
                  "cmems_mod_glo_phy_my_0.083deg_static")
 ) |>
-  filter(region == "nwa")
+  filter(region == "world")
+
+
+
 
 vars = c("deptho", "mask")
 depth = c(0,1)

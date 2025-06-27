@@ -1,13 +1,15 @@
-#' Compose a file name from a database
+#' Compose a file name from a database (possibly merged)
 #'
 #' @export
-#' @param x database (tibble), with date, var, depth
+#' @param x database (tibble) possibly merged, with date, var, depth
 #' @param path character, the root path for the file name
 #' @param ext character, the file name extension to apply (including dot)
 #' @return character vector of file names in form
 #'         \code{<path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext}
 compose_filename <- function(x, path = ".", ext = ".tif"){
-  
+  if (inherits(x, "merged") || "product" %in% colnames(x)){
+    path = file.path(path, x$product)
+  }
   # <path>/YYYY/mmdd/id__date_time_depth_period_variable_treatment.ext
   # cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-14T000000_0.494_day_vo_raw.tif
   file.path(path,
@@ -98,15 +100,8 @@ list_files <- function(path,
                            pattern = "*.tif", 
                            exclude = "static"){
   if (missing(path)) stop("path is required")
-  if (requireNamespace("fs", quietly = TRUE)){
-    ff = fs::dir_ls(path[1],
-                    regexp = utils::glob2rx(pattern),
-                    recurse = TRUE,
-                    type = "file") 
-  } else {
-    ff = list.files(path[1], pattern = utils::glob2rx(pattern),
-                    recursive = TRUE, full.names = TRUE) 
-  }
+  ff = list.files(path[1], pattern = utils::glob2rx(pattern),
+                  recursive = TRUE, full.names = TRUE) 
   if (length(exclude) > 0){
     ff = ff[!mgrepl(exclude, ff, fixed = TRUE)]
   }
@@ -232,9 +227,11 @@ missing_records = function(x,
 #' @export
 #' @param path chr, the root data directory
 #' @param pattern chr, database filename regex pattern to search for
+#' @param form one of "path" or "table"
 #' @return database paths relative to the root path
 list_databases = function(path = copernicus::copernicus_path(),
-                          pattern = "^database$"){
+                          pattern = "^database$",
+                          form = c("path", "table")[1]){
   
     ff = lapply(list.dirs(path, full.names = TRUE, recursive = FALSE),
                 function(p) {
@@ -243,5 +240,12 @@ list_databases = function(path = copernicus::copernicus_path(),
                     unlist()
                 } ) |>
       unlist()
-  sub(paste0(path,.Platform$file.sep), "", dirname(ff))
+  ff = sub(paste0(path,.Platform$file.sep), "", dirname(ff))
+  if (tolower(form[1]) == "table"){
+    ss = strsplit(ff, .Platform$file.sep, fixed = TRUE)
+    ff = dplyr::tibble(
+      region = sapply(ss, "[[", 1),
+      product_id = sapply(ss, "[[", 2))
+  }
+  ff
 }

@@ -21,5 +21,5 @@ Imports:
   stars,
   readr
 Suggests:
-  fs
+  cofbb
 RoxygenNote: 7.3.2

@@ -4,12 +4,18 @@
 \alias{list_databases}
 \title{Retrieve a list of databases}
 \usage{
-list_databases(path = copernicus::copernicus_path(), pattern = "^database$")
+list_databases(
+  path = copernicus::copernicus_path(),
+  pattern = "^database$",
+  form = c("path", "table")[1]
+)
 }
 \arguments{
 \item{path}{chr, the root data directory}
 
 \item{pattern}{chr, database filename regex pattern to search for}
+
+\item{form}{one of "path" or "table"}
 }
 \value{
 database paths relative to the root path
