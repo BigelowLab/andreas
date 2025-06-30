@@ -13,114 +13,16 @@ This document is divided into two parts: "Fetching Remote Data" and "Working wit
 
 # Fetching Remote Data
 
-You only need this part if you are creating or maintaining a local archive of data.  If you already have the data then skip ahead to "Working with Local Archives"
-
-## Look up tables
-
-We use look up tables (`lut`), merged with Copernicus product description tables, to allow users to define a subset of data sets.  These `luts` can be configured as needed, but for out use case we want to know the `dataset_id`, `variable`, the `depth` and `time` to request.  The spatial bounding box coordinates are not maintained in our default tables, but you could manage those elsewhere (we do using the [cofbb R package](https://github.com/BigelowLab/cofbb)).  Below is out example we use for fetching data from the [GLOBAL_ANALYSISFORECAST_PHY_001_024](https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_PHY_001_024/description) product suite.
-
-```{r}
-suppressPackageStartupMessages({
-  library(andreas)
-  library(copernicus)
-  library(dplyr)
-  library(stars)
-})
-
-lut = read_product_lut(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024') |>
-  glimpse()
-```
-
-Some of the variables are manually curated: `depth`, `fetch`, `mindepth` and `maxdepth`. The balance are derived from the coperncius catalog where they are described: `dataset_id`, `dataset_name`, `short_name`, `standard_name`, `units`, `start_time` and `end_time`.  The latter two tell us the dates between which the products are known to be served.
-
-The manually curated ones are ..
-
-`depth` a descriptive variable with values including 'sur', 'bot' and 'mld', but you could store a numeric depth, too.  The only thing to keep in mind is the numeric depth would be cast to character class.  
-
-`fetch` is simple "yes" or "no" - this way you can turn them on and off as needed to fetch data.
-
-`mindepth` and `maxdepth` are passed to the copernicus package as min/max filters for searching.
-
-The `name` field is a automatically curated field, we convert `short_name` to camelCase to purge the underscores (to save annoyance later when archiving files.)
-
-To be super clear, somebody has to maintain a look up table - it requires some manual intervention. And you can designed the `LUT` to serve your own needs. But once the table is set up, it can persist between R sessions, as we save them in the `copernicus::copernicus_path("lut")` directory.
-
-
-## Fetch data
-
-Requests for data from the [Copernicus Marine Data Store](https://data.marine.copernicus.eu/products) are as simple as filtering the above LUT for the desired records (rows).  We use `fetch_andreas()` for this, but keep in mind that it is not always possible to bind attributes (variables in a stars object) if variables are of varying dimensionality - in particular if they have a depth dimension when retrieved in native form.  To resolve this, the returned value is a list of stars objects grouped by dataset_id and depth.
-
-```{r}
-x = lut |>
-  dplyr::filter(name %in% c("uo", "vo", "thetao", "mlotst")) |>
-  fetch_andreas(time = Sys.Date() + c(0,1), 
-                bb = cofbb::get_bb("gom"))
-x
-```
-
-## Archiving data
-
-You can download and archive data using the database functionality provided in this package.  There are a number of ways to manage suites of data, this is just one fairly light weight method.
-
-Here, we store data in a directory tree that starts with `region` and `product` at it's root. Within the `product` we divide by `year`, `monthday`.  Within in each `monthday` directory there are one or more files uniquely named to provide complete identification of datasetid, time, depth, period, variable and treatment. Each file contains one raster for one variable at one depth and one time.   
-
-Here is an example of a file name that follows this pattern `datasetid__date_time_depth_period_variable_treatment.tif`.
-```
-nwa/GLOBAL_ANALYSISFORECAST_PHY_001_024/2022/0601/cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2022-06-01T000000_sur_day_uo_raw.tif
-```
-
-Here you can see that data set id and the rest of the identifiers are separated by a double underscore to aid in programmatic parsing.  Time includes the hour in case we ever want to download the 6-hour data sets.  Depth is currently only expressed as "sur", "bot" and "mld", but use of measured values such as "1.493" *etc.* is allowed but not currently used. The treatment, `raw`, in this case means the values are as downloaded, however, if you ever wanted to roll your own running mean (say 8-day rolling mean) or some other statistic this naming system provides the flexibility you will need.
-
-**NOTE** Don't forget to [set your root data path](https://github.com/BigelowLab/copernicus?tab=readme-ov-file#configure-data-path.).
-
-First we define an output path for the Gulf of Maine data.  The path isn't created until data is written to it.  Then we simply call fetch and write individual GeoTIFF files into a database structure.  Note that we provide an identifier that provides the provenance of the data - that's what the `attrs` is all about.  We receive, in turn, a table that serves as a database.
-
-
-
-```
-path = copernicus::copernicus_path("gom", "GLOBAL_ANALYSISFORECAST_PHY_001_024")
-x = x[[1]]
-attrs = attr(x, "andreas")
-dataset_id = attrs$dataset_id
-dates = attrs$time
-```
-
-Now we step through each variable in the stars object.
-
-```
-db = lapply(names(x),
-  function(nm){
-    db = sprintf("%s__%s_%s_%s_%s_%s%s",
-                 dataset_id,
-                 format(dates, "%Y-%m-%dT000000"),
-                 "sur", 
-                 "day",
-                 nm,
-                 "raw",
-                 ".tif") |>
-      decompose_filename()
-    for(i in seq_along(dates)) write_copernicus(dplyr::slice(x[nm], "time", i), 
-                                                dplyr::slice(db, i),
-                                                path)
-    db
-  }) |>
-  dplyr::bind_rows()
-```
-
-Since this is the first time you have downloaded and archived data, be sure to save the database.
-
-```
-write_database(db, path)
-```
-
+You only need this part if you are creating or maintaining a local archive of data. See this [wiki](https://github.com/BigelowLab/andreas/wiki/Fetching-a-new-data) page for an example of building a local dataset.
 
 # Working with Local Archives
 
+For most needs, you are interested in working with a previously downloaded dataset.
+
 ## The local archive
 
-The local archive is a collection of one or more products (and their datasets) for a particular region of the world.  For example, we have an archive for the Northwest Atlantic ("nwa").  The archive is a directory called "nwa" withing which there is one subdirectory for each product.  Within that product directory there may be series of subdirectories organized by year (*e.g.* "2022") and then by month-day (*e.g.* "0521").  Within the month-day subdirectories there will be one or more GeoTIFF files (one file for each variable).  
-
-At the product level you will find a text-based file called "database".  It is a comman delimited file that (in theory) keeps track of the files that have been archived.  We leverage this database to quickly find a subset of the entire database.
+The local archive is a collection of one or more products (and their datasets) for a particular region of the world.  For example, we have an archive for the Northwest Atlantic that extends from Cape Hatteras to Flemish Cap ("chfc").  The archive is a directory called "chfc" within which there is one subdirectory for each product.  Within each product directory there may be series of subdirectories organized by year (*e.g.* "2022") and then by month-day (*e.g.* "0521").  Within the month-day subdirectories there will be one or more GeoTIFF files (one file for each variable).  
+At the product level you will find a text-based file called "database".  It is a comma delimited file that (in theory) keeps track of the files that have been archived.  We leverage this database to quickly find a subset of the entire database.
 
 
 ### Using the database
@@ -137,7 +39,7 @@ suppressPackageStartupMessages({
   library(stars)
 })
 
-path = copernicus::copernicus_path("nwa", "GLOBAL_ANALYSISFORECAST_PHY_001_024")
+path = copernicus::copernicus_path("chfc", "GLOBAL_ANALYSISFORECAST_PHY_001_024")
 db <- andreas::read_database(path) |>
   dplyr::glimpse()
 ```

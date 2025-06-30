@@ -39,7 +39,8 @@ suppressPackageStartupMessages({
 #' @return a database table 
 fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
   
-  if (DEVMODE) cat("fetch_dataset:", tbl$dataset_id[1],"\n")
+  charlier::info("fetch_dataset: %s %s", tbl$dataset_id[1], paste(tbl$name, collapse = ", "))
+  charlier::info("fetch_dataset: %s", paste(format(dates, "%Y-%m-%d"), collapse = ", "))
   # here we need to check that the dates of the request (dates) fit within the 
   # bounds of the source (tbl$start_time, tbl$end_time).  Presumably for a given 
   # dataset the stars/stop dates are the same for all variables
@@ -48,7 +49,7 @@ fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
   x = fetch_andreas(tbl,
                     time = range(dates),
                     bb = cfg$bb, 
-                    verbose = TRUE)[[1]]
+                    verbose = DEVMODE)[[1]]
   dimx = stars::st_dimensions(x)
   andreas = attr(x, "andreas")
   names(x) <- tbl$name
@@ -100,7 +101,6 @@ main = function(date = Sys.Date(), cfg = NULL){
 
   out_path <- copernicus::copernicus_path(cfg$region, cfg$product)
   
-  
   db = P |>
     group_map(fetch_dataset, 
               out_path = out_path, 
@@ -125,13 +125,14 @@ Args = argparser::arg_parser("Fetch a copernicus forecast",
                type = "character") |>
   add_argument("--config",
                help = 'configuration file',
-               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
+               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
   parse_args()
 
 
 cfg = yaml::read_yaml(Args$config)
 cfg$bb = cofbb::get_bb(cfg$region)
 charlier::start_logger(copernicus::copernicus_path("log"))
+charlier::info("fetch_forecast: %s %s", cfg$region, cfg$product)
 date = as.Date(Args$date)
 if (!interactive()){
   ok = main(date, cfg )
