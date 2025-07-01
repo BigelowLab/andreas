@@ -110,7 +110,8 @@ subset_static_by_region = function(name = c("deptho", "mask", "deptho_lev"),
           for (nm in name){
             opath = copernicus_path(tbl$region, tbl$product_id, "static") |> make_path()
             ofile = file.path(opath, paste0(nm, ".tif"))
-            s = read_global_static(name, tbl$product_id, bb = bb) |>
+            cat("writing ", ofile, "\n")
+            s = read_global_static(nm, tbl$product_id, bb = bb) |>
                stars::write_stars(ofile)
           } # nm loop
 
@@ -151,9 +152,10 @@ fetch_static = function(product_id = "GLOBAL_ANALYSISFORECAST_PHY_001_024"){
 #' @param ... other arguments for [twinkle::make_raster_lut].  Ignored is `x`
 #'   is a path rather than stars object.
 #' @return a stars object as a LUT
-make_static_lut = function(x, 
+make_static_lut = function(x = copernicus_path(list_databases())[[1]], 
                            ...){
   if (!requireNamespace("twinkle")) stop("please install the twinkle package first")
+  
   y = if (inherits(x, "stars")){
     twinkle::make_raster_lut(x, ...)
   } else {
