@@ -62,7 +62,7 @@ db |> dplyr::count(id, depth, variable)
 
 ### Static variables
 
-Some products have static variables (model coordinates, depth, mask, etc).  We don't retain any on a usual basis except for `deptho` and `mask`.
+Some products have static variables (model coordinates, depth, mask, etc).  We don't retain any on a usual basis except for `deptho`, `mask` and `deptho_lev` (model level at bottom).  We augment the base variables with a look up table, `lut`, which maps land-based pixels to their nearest water-based pixel. Others include `TPI`, `TRI`, `roughness`, `slope` and `aspect`.  Learn more about those [here](https://rspatial.github.io/terra/reference/terrain.html).
 
 You can read static variables easily by providing just the variable names and the data path.
 

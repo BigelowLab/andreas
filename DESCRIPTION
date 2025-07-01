@@ -22,5 +22,6 @@ Imports:
   readr
 Suggests:
   cofbb,
-  twinkle
+  twinkle,
+  terra
 RoxygenNote: 7.3.2

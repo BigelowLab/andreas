@@ -167,3 +167,40 @@ make_static_lut = function(x = copernicus_path(list_databases())[[1]],
   }
   y
 }
+
+
+#' Given a depth raster, compute a various [terrain metrics](https://rspatial.github.io/terra/reference/terrain.html)
+#' 
+#' The [terra package](https://CRAN.R-project.org/package=terra) is required.
+#' 
+#' @export
+#' @param x a stars object that is a deptho or some bathymetry. Or, alternatively, 
+#'   it is the path to a particular product suite, such as 
+#'   `copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")`.  In this case we 
+#'   handle reading and writing the files for you
+#' @param v character one of slope, aspect, TPI  (default), TRI, TRIriley, 
+#'     TRIrmsd, roughness, flowdir
+#' @param ... other arguments for [terra::terrain]
+#' @return a stars object as a terrain metric
+make_static_terrain = function(x = copernicus_path(list_databases())[[1]], 
+                               v = "TPI",
+                               ...){
+  if (!requireNamespace("terra")) stop("please install the terra package first")
+  require(terra)
+  y = if (inherits(x, "stars")){
+    as(x, "SpatRaster") |>
+    terra::terrain(v = v, ...) |>
+      stars::st_as_stars()
+  } else {
+    filename = file.path(x, "static", "deptho.tif")
+    if (!file.exists(filename)) stop("deptho file not found:", filename)
+    ofile = file.path(x, "static", paste0(v, ".tif"))
+    terra::rast(filename) |>
+      terra::terrain(v = v, ...) |>
+      stars::st_as_stars() |>
+      stars::write_stars(ofile)
+  }
+  y
+}
+
+
