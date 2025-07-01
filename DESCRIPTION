@@ -21,5 +21,6 @@ Imports:
   stars,
   readr
 Suggests:
-  cofbb
+  cofbb,
+  twinkle
 RoxygenNote: 7.3.2

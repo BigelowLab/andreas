@@ -71,31 +71,29 @@ read_global_static = function(name = c("deptho", "mask"),
 #' 
 #' @export
 #' @param name chr, one or more static variable names
-#' @param region chr one or more destination region name
+#' @param regions chr one or more destination region name
 #' @param bb bounding box - something from which an st_bbox can be made.
 #'   Ignored if region is "world", in which case we essentially copy to world. If 
 #'   not provided and the `cofbb` package is available, then retrieve that
 #'   dynamically
 #' @return NULL invisibly
-subset_static_by_region = function(name = c("deptho", "mask"),
-                         region = c("world", "gom", "chfc"),
+subset_static_by_region = function(name = c("deptho", "mask", "deptho_lev"),
+                         regions = c("world", "nwa", "gom", "chfc"),
                          bb = NULL){
 
   db = list_databases(form = "table") |>
-    dplyr::group_by(.data$region) |>
+    dplyr::filter(.data$region %in% regions) |>
+    dplyr::rowwise() |>
     dplyr::group_map(
       function(tbl, grp){
-       
-        if (tolower(tbl$region[1]) == "world"){
+        cat("region: ", tbl$region, " product: ", tbl$product_id)
+        if (tolower(tbl$region) == "world"){
           # here we essentially copy
-          for (product in tbl$product_id){
-            cat("region:", tbl$region[1], "  product:", product, "\n")
-            s = read_global_static(name, product)
-            opath = copernicus_path(tbl$region[1], product, "static") |> make_path()
-            for (nm in names(s)){
-              ofile = file.path(opath, paste0(nm, ".tif"))
-              dummy = stars::write_stars(s[nm], ofile)
-            }
+          for (nm in name){
+            opath = copernicus_path(tbl$region, tbl$product_id, "static") |> make_path()
+            ofile = file.path(opath, paste0(nm, ".tif"))
+            s = read_global_static(nm, tbl$product_id) |>
+              stars::write_stars(ofile)
           }
         } else {
           # but here is a case-by-case
@@ -109,18 +107,16 @@ subset_static_by_region = function(name = c("deptho", "mask"),
               stop("if region is not 'world' then bb must be provided")
             }
           }
-          for (product in tbl$product_id){
-            cat("region:", tbl$region[1], "  product:", product, "\n")
-            s = read_global_static(name, product, bb = bb)
-            opath = copernicus_path(tbl$region[1], product, "static") |> make_path()
-            for (nm in names(s)){
-              ofile = file.path(opath, paste0(nm, ".tif"))
-              dummy = stars::write_stars(s[nm], ofile)
-            } # nm loop
-          } # product loop
+          for (nm in name){
+            opath = copernicus_path(tbl$region, tbl$product_id, "static") |> make_path()
+            ofile = file.path(opath, paste0(nm, ".tif"))
+            s = read_global_static(name, tbl$product_id, bb = bb) |>
+               stars::write_stars(ofile)
+          } # nm loop
+
           
         } # world?
-      }, .keep = TRUE)
+      })
   return(invisible(NULL))
 }
 
@@ -141,4 +137,31 @@ fetch_static = function(product_id = "GLOBAL_ANALYSISFORECAST_PHY_001_024"){
                                    dataset_id = p$dataset_id[1],
                                    vars = p$short_name)
   
+}
+
+
+#' Given a mask raster, compute a [raster-lut](https://github.com/BigelowLab/twinkle/blob/eae4a99bafbe5cc81ecfc8ddfb3d9f89c04f010e/R/stars.R#L160)
+#' 
+#' The [twinkle package](https://github.com/BigelowLab/twinkle) is required.
+#' @export
+#' @param x a stars object that is a mask (0/1) Or, alternatively, 
+#'   it is the path to a particular product suite, such as 
+#'   `copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")`.  In this case we 
+#'   handle reading and writing the files for you
+#' @param ... other arguments for [twinkle::make_raster_lut].  Ignored is `x`
+#'   is a path rather than stars object.
+#' @return a stars object as a LUT
+make_static_lut = function(x, 
+                           ...){
+  if (!requireNamespace("twinkle")) stop("please install the twinkle package first")
+  y = if (inherits(x, "stars")){
+    twinkle::make_raster_lut(x, ...)
+  } else {
+    filename = file.path(x, "static", "mask.tif")
+    if (!file.exists(filename)) stop("mask file not found:", filename)
+    read_static("mask", x) |>
+      twinkle::make_raster_lut(mask_value = 0) |>
+      stars::write_stars(file.path(x, "static", "lut.tif"))
+  }
+  y
 }
