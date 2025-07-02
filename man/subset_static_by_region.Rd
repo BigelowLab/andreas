@@ -6,15 +6,15 @@
 (in `copernicus_path("static")`) to region specified.}
 \usage{
 subset_static_by_region(
-  name = c("deptho", "mask"),
-  region = c("world", "gom", "chfc"),
+  name = c("deptho", "mask", "deptho_lev"),
+  regions = c("world", "nwa", "gom", "chfc"),
   bb = NULL
 )
 }
 \arguments{
 \item{name}{chr, one or more static variable names}
 
-\item{region}{chr one or more destination region name}
+\item{regions}{chr one or more destination region name}
 
 \item{bb}{bounding box - something from which an st_bbox can be made.
 Ignored if region is "world", in which case we essentially copy to world. If 

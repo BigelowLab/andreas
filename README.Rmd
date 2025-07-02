@@ -37,6 +37,7 @@ suppressPackageStartupMessages({
   library(copernicus)
   library(dplyr)
   library(stars)
+  library(twinkle)
 })
 
 path = copernicus::copernicus_path("chfc", "GLOBAL_ANALYSISFORECAST_PHY_001_024")
@@ -44,21 +45,49 @@ db <- andreas::read_database(path) |>
   dplyr::glimpse()
 ```
 
-Now we can read in the files.
-
-```{r read_files}
-s = db |>
-  dplyr::slice(1:20) |>
-  andreas::read_andreas(path)
-s
-```
-
-
 It may look complicated, but this permits the storage of multiple datasets per product, and is a very flexible system.
 
 ```{r count}
 db |> dplyr::count(id, depth, variable)
 ```
+
+#### Filtering the database
+Next we can filter the database to select just a few variables and dates.
+
+```{r filter}
+db = db |>
+  dplyr::filter(variable %in% c("uo", "vo"),
+                dplyr::between(date, as.Date("2024-07-01"), as.Date("2024-07-04")))
+db
+```
+
+#### Reading rasters 
+
+Now we can read in the files.
+
+```{r read_files}
+s = andreas::read_andreas(db, path)
+s
+```
+#### Extracting point data
+
+It's pretty easy to extract values at various points.  We provide a sample of sites (some buoys and two airports).  Below we can extract point data in long form.
+
+```{r extract}
+sites = read_buoys()
+values = extract_points(s, sites)
+values
+```
+
+Or we can do the same in wide format.
+
+```{r extract_wide}
+values = extract_points(s, sites, form = "wide")
+values
+```
+
+If you explore the data you'll notice that the last two points (both airports) return NA values which is expected for a marine data set.
+
 
 ### Static variables
 
@@ -66,7 +95,22 @@ Some products have static variables (model coordinates, depth, mask, etc).  We d
 
 You can read static variables easily by providing just the variable names and the data path.
 
-```{r}
+```{r static}
 static = read_static(name = c("mask", "deptho"), path = path)
 static
+```
+
+#### Remapping points located over land
+
+The `lut` is useful when you are extracting point data from rasters, but some (or all!) of your points are close to water but not over water. The location of an animal washed up on a beach is a classic example (or a sturgeon report from nearshore) - they just miss being located over a "wet" pixel.  It happens.  Here's how you can find the closest available "wet" pixel given one or more points (some of which are on shore.)  The original locations are shown with open purple circles, and the remapped locations are shown with closed orange circles.
+
+```{r remap}
+lut = read_static(name = "lut", path = path)
+y = remap_to_water_pixel(sites, lut)
+
+plot(static['deptho'], axes = TRUE, reset = FALSE, 
+     extent = sf::st_union(sites) |> sf::st_buffer(dist = 5000), 
+     main = "")
+points(sites, pch = 1, col = "purple", cex = 1.3)
+points(y, pch = 20, col = "orange")
 ```

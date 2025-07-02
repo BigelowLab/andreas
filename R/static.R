@@ -141,6 +141,41 @@ fetch_static = function(product_id = "GLOBAL_ANALYSISFORECAST_PHY_001_024"){
 }
 
 
+#' Given a depth raster, compute a various [terrain metrics](https://rspatial.github.io/terra/reference/terrain.html)
+#' 
+#' The [terra package](https://CRAN.R-project.org/package=terra) is required.
+#' 
+#' @export
+#' @param x a stars object that is a deptho or some bathymetry. Or, alternatively, 
+#'   it is the path to a particular product suite, such as 
+#'   `copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")`.  In this case we 
+#'   handle reading and writing the files for you
+#' @param v character one of slope, aspect, TPI  (default), TRI, TRIriley, 
+#'     TRIrmsd, roughness, flowdir
+#' @param ... other arguments for [terra::terrain]
+#' @return a stars object as a terrain metric
+make_static_terrain = function(x = copernicus_path(list_databases())[[1]], 
+                               v = "TPI",
+                               ...){
+  if (!requireNamespace("terra")) stop("please install the terra package first")
+  require(terra)
+  y = if (inherits(x, "stars")){
+    as(x, "SpatRaster") |>
+      terra::terrain(v = v, ...) |>
+      stars::st_as_stars()
+  } else {
+    filename = file.path(x, "static", "deptho.tif")
+    if (!file.exists(filename)) stop("deptho file not found:", filename)
+    ofile = file.path(x, "static", paste0(v, ".tif"))
+    terra::rast(filename) |>
+      terra::terrain(v = v, ...) |>
+      stars::st_as_stars() |>
+      stars::write_stars(ofile)
+  }
+  y
+}
+
+
 #' Given a mask raster, compute a [raster-lut](https://github.com/BigelowLab/twinkle/blob/eae4a99bafbe5cc81ecfc8ddfb3d9f89c04f010e/R/stars.R#L160)
 #' 
 #' The [twinkle package](https://github.com/BigelowLab/twinkle) is required.
@@ -168,39 +203,26 @@ make_static_lut = function(x = copernicus_path(list_databases())[[1]],
   y
 }
 
-
-#' Given a depth raster, compute a various [terrain metrics](https://rspatial.github.io/terra/reference/terrain.html)
+#' Map land-based points to water.
 #' 
-#' The [terra package](https://CRAN.R-project.org/package=terra) is required.
+#' Given a set of points and a look up table, compute new locations over water
+#' for any input points located over land.  Input points over water are unchanged.
 #' 
 #' @export
-#' @param x a stars object that is a deptho or some bathymetry. Or, alternatively, 
-#'   it is the path to a particular product suite, such as 
-#'   `copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")`.  In this case we 
-#'   handle reading and writing the files for you
-#' @param v character one of slope, aspect, TPI  (default), TRI, TRIriley, 
-#'     TRIrmsd, roughness, flowdir
-#' @param ... other arguments for [terra::terrain]
-#' @return a stars object as a terrain metric
-make_static_terrain = function(x = copernicus_path(list_databases())[[1]], 
-                               v = "TPI",
-                               ...){
-  if (!requireNamespace("terra")) stop("please install the terra package first")
-  require(terra)
-  y = if (inherits(x, "stars")){
-    as(x, "SpatRaster") |>
-    terra::terrain(v = v, ...) |>
-      stars::st_as_stars()
-  } else {
-    filename = file.path(x, "static", "deptho.tif")
-    if (!file.exists(filename)) stop("deptho file not found:", filename)
-    ofile = file.path(x, "static", paste0(v, ".tif"))
-    terra::rast(filename) |>
-      terra::terrain(v = v, ...) |>
-      stars::st_as_stars() |>
-      stars::write_stars(ofile)
-  }
-  y
+#' @param x sf object of points
+#' @param lut stars object as per `read_static("lut", path)`
+#' @param sf object with new geometry
+#' @return sf object of points with new locations (where appropriate)
+remap_to_water_pixel = function(x = read_buoys(), 
+                               lut = read_static("lut")){
+  
+  old_index = stars::st_cells(lut, x)  # index into the LUT
+  new_index = lut[[1]][old_index]      # the new index the LUT points to
+  ix = new_index != old_index          # where they arew "new" (relocated)
+  newpoints = twinkle::stars_index_to_loc(new_index[ix], lut, form = "sf")
+  st_geometry(x[ix,]) <- st_geometry(newpoints)
+  x
 }
+
 
 
