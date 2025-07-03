@@ -114,10 +114,19 @@ list_files <- function(path,
 #'
 #' @export
 #' @param path character the directory with the database
+#' @param multiple logical, if TRUE then switch to a [merge_database] where
+#'   the path points to a directory that contains multiple compatible 
+#'   databases.
 #' @param filename character, optional filename
+#' @param ... optional arguments for [merge_database]
 #' @return a tibble (possibly empty if the database doesn't exist)
 read_database <- function(path,
-                          filename = "database"){
+                          multiple = FALSE,
+                          filename = "database", 
+                          ...){
+  if (multiple){
+    return(merge_database(path), filename = filename, ...)
+  }
   if (missing(path)) stop("path is required")
   filepath <- file.path(path[1], filename[1])
   if(!file.exists(filepath)){

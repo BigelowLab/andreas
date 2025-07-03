@@ -15,7 +15,7 @@
 # Writing from a merged database (class == "merged" or "product" in variables) is
 # disallowed.  It would probably work, but why are you doing this?
 
-#' Merge databases for one region
+#' Merge compatible databases for one region
 #' 
 #' @export
 #' @param path chr the path to the regional data repository

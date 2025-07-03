@@ -2,7 +2,7 @@
 % Please edit documentation in R/merge-databases.R
 \name{merge_database}
 \alias{merge_database}
-\title{Merge databases for one region}
+\title{Merge compatible databases for one region}
 \usage{
 merge_database(path = copernicus_path("nwa"), dups = "latest", ...)
 }
@@ -18,5 +18,5 @@ one of "latest" (most recent), "earliest", "all"}
 a merged database
 }
 \description{
-Merge databases for one region
+Merge compatible databases for one region
 }

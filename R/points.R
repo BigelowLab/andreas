@@ -28,7 +28,7 @@ extract_points = function(x, y,
                           form = c("long", "wide")){
   
   n = nrow(y)
-  N = floor(log10(n)+ 1)
+  N = floor(log10(n)) + 1
   fmt = paste0("p%0.", N, "i")
   pnames = sprintf(fmt, seq_len(n))
   xy = sf::st_coordinates(y)

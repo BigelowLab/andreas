@@ -4,12 +4,18 @@
 \alias{read_database}
 \title{Read a file-list database}
 \usage{
-read_database(path, filename = "database")
+read_database(path, multiple = FALSE, filename = "database", ...)
 }
 \arguments{
 \item{path}{character the directory with the database}
 
+\item{multiple}{logical, if TRUE then switch to a [merge_database] where
+the path points to a directory that contains multiple compatible 
+databases.}
+
 \item{filename}{character, optional filename}
+
+\item{...}{optional arguments for [merge_database]}
 }
 \value{
 a tibble (possibly empty if the database doesn't exist)
