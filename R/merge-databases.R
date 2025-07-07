@@ -42,7 +42,7 @@ merge_database = function(path = copernicus_path("chfc"),
     dplyr::bind_rows()
   
   if (rm_dups){
-    db = dplyr::arrange(db, .data$date, .data$product, dplyr::desc(.data$dataset))  
+    db = dplyr::arrange(db, .data$date, .data$product, dplyr::desc(.data$id))  
                         # relies on ANALYSISFORECAST alphabetically 
                         # leading MULTIYEAR in the product variable
                         # and my preceding myint in the id (dataset) reversed variable
