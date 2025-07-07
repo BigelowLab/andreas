@@ -1,3 +1,13 @@
+#' List static variables in a regional product suite
+#'
+#' @export
+#' @param path chr, the copernicus data path
+#' @return the names of available static variables
+list_static = function(path = copernicus::copernicus_path("gom", "GLOBAL_ANALYSISFORECAST_PHY_001_024")){
+  ff = list.files(file.path(path, "static"))
+  gsub(".tif", "", ff, fixed = TRUE)
+}
+
 #' Read static variables for a regional dataset, possibly subsetting with a bounding box
 #' 
 #' *N.B.* When combining these with other Copernicus layers using `c()` you may 
