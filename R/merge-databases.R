@@ -23,7 +23,7 @@
 #' @param dups chr, control how to handle duplicate variables on a given day,
 #'   one of "latest" (most recent), "earliest", "all" 
 #' @return a merged database
-merge_database = function(path = copernicus_path("nwa"), 
+merge_database = function(path = copernicus_path("chfc"), 
                           dups = "latest", 
                           ...){
   if (length(path) > 1) stop("please specify only one region")
@@ -40,7 +40,8 @@ merge_database = function(path = copernicus_path("nwa"),
   
   do_dups = tolower(dups[1])
   if (do_dups %in% c("lastest", "earliest")){
-    ix = dplyr::select(db, dplyr::all_of("date", "variable")) |>
+    db = dplyr::arrange(db, date)
+    ix = dplyr::select(db, dplyr::all_of(c("date", "variable"))) |>
       duplicated(fromLast = do_dups == "lastest")
     db = dplyr::filter(db, !ix)
   }

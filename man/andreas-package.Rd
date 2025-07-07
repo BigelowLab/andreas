@@ -6,7 +6,7 @@
 \alias{andreas}
 \title{andreas}
 \description{
-Serves Center for Ocean Forecasting Copernicus needs.
+Serves Tandy Center for Ocean Forecasting Copernicus needs.
 }
 \details{
 Andreas Copernicus was Nicolaus Copernicus' lesser known brother.

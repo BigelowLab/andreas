@@ -4,7 +4,7 @@
 \alias{merge_database}
 \title{Merge compatible databases for one region}
 \usage{
-merge_database(path = copernicus_path("nwa"), dups = "latest", ...)
+merge_database(path = copernicus_path("chfc"), dups = "latest", ...)
 }
 \arguments{
 \item{path}{chr the path to the regional data repository}
