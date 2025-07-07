@@ -4,13 +4,14 @@
 \alias{merge_database}
 \title{Merge compatible databases for one region}
 \usage{
-merge_database(path = copernicus_path("chfc"), dups = "latest", ...)
+merge_database(path = copernicus_path("chfc"), rm_dups = TRUE, ...)
 }
 \arguments{
 \item{path}{chr the path to the regional data repository}
 
-\item{dups}{chr, control how to handle duplicate variables on a given day,
-one of "latest" (most recent), "earliest", "all"}
+\item{rm_dups}{logical, if TRUE remove duplicates preferentially 
+retaining MULTIYEAR over ANALAYSISFORECAST products and chosing
+"my" over "myint" datasets on a given date}
 
 \item{...}{other arguments for [read_database]}
 }

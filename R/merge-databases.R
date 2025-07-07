@@ -6,7 +6,9 @@
 # For a given region, 
 #   read each database and add product column,
 #   mark the table as "merged"  with attribute or class
-#   select the most recent record for each variable (what to do with tob and bottomT?)
+#   select the most "X" record - that is on a given date 
+#     prefer "MULTIYEAR" to "ANALYSISFORECST" products
+#     prefer "my" to "myint" datasets
 #   
 # The user might select one or more of these records and then read the files.
 # We need to catch at `compose_filename()` which will catch the presence of a `product`
@@ -20,11 +22,12 @@
 #' @export
 #' @param path chr the path to the regional data repository
 #' @param ... other arguments for [read_database]
-#' @param dups chr, control how to handle duplicate variables on a given day,
-#'   one of "latest" (most recent), "earliest", "all" 
+#' @param rm_dups logical, if TRUE remove duplicates preferentially 
+#'   retaining MULTIYEAR over ANALAYSISFORECAST products and chosing
+#'   "my" over "myint" datasets on a given date
 #' @return a merged database
 merge_database = function(path = copernicus_path("chfc"), 
-                          dups = "latest", 
+                          rm_dups = TRUE, 
                           ...){
   if (length(path) > 1) stop("please specify only one region")
   if (!dir.exists(path)) stop("region directory not found: ", path)
@@ -38,11 +41,14 @@ merge_database = function(path = copernicus_path("chfc"),
       }) |>
     dplyr::bind_rows()
   
-  do_dups = tolower(dups[1])
-  if (do_dups %in% c("lastest", "earliest")){
-    db = dplyr::arrange(db, date)
+  if (rm_dups){
+    db = dplyr::arrange(db, .data$date, .data$product, dplyr::desc(.data$dataset))  
+                        # relies on ANALYSISFORECAST alphabetically 
+                        # leading MULTIYEAR in the product variable
+                        # and my preceding myint in the id (dataset) reversed variable
+                        # it's just dumb luck that this works
     ix = dplyr::select(db, dplyr::all_of(c("date", "variable"))) |>
-      duplicated(fromLast = do_dups == "lastest")
+      duplicated(fromLast = TRUE)
     db = dplyr::filter(db, !ix)
   }
   class(db) <- c("merged", class(db))

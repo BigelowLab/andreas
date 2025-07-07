@@ -125,7 +125,7 @@ read_database <- function(path,
                           filename = "database", 
                           ...){
   if (multiple){
-    return(merge_database(path), filename = filename, ...)
+    return(merge_database(path, filename = filename, ...))
   }
   if (missing(path)) stop("path is required")
   filepath <- file.path(path[1], filename[1])
