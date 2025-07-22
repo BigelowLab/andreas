@@ -2,7 +2,9 @@ Package: andreas
 Type: Package
 Title: Serves Center for Ocean Forecasting Copernicus needs
 Version: 0.3.0
-Author: Ben Tupper
+Authors@R: c(
+    person("Tupper", "Ben", email = "btupper@bigelow.org", role = c("aut", "cre")),
+    person("Johnson", "Omi", email = "ojohnson@bigelow.org", role = "ctb"))
 Maintainer: Ben Tupper <btupper@bigelow.org>
 Description: Provides download, archiving and access to Copernicus related local datasets.
 URL: https://github.com/BigelowLab/andreas

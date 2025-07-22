@@ -18,4 +18,13 @@ Useful links:
 }
 
 }
+\author{
+\strong{Maintainer}: Tupper Ben \email{btupper@bigelow.org}
+
+Other contributors:
+\itemize{
+  \item Johnson Omi \email{ojohnson@bigelow.org} [contributor]
+}
+
+}
 \keyword{internal}

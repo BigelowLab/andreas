@@ -125,7 +125,7 @@ Args = argparser::arg_parser("Fetch a copernicus forecast",
                type = "character") |>
   add_argument("--config",
                help = 'configuration file',
-               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
+               default = copernicus_path("config","fetch-day-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
   parse_args()
 
 
