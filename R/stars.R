@@ -7,7 +7,7 @@
 #' @return stars object
 st_match = function(x, y, ...){
   x |>
-    stars::st_crop(y, ...) |>
+    sf::st_crop(y, ...) |>
     stars::st_warp(y, ...)
 }
 
