@@ -5,7 +5,12 @@
 \title{Corrects stars objects with unexpected missing values. Intended for use with Copernicus.
 Assumes that the stars object uses NA to both indicate masked values, i.e. land, and missing values.}
 \usage{
-correct_andreas(stars_obj, land_mask, replacement_values = list(mlotst = 700))
+correct_andreas(
+  stars_obj,
+  land_mask,
+  replacement_values = list(mlotst = 700, uo = -2, bottomT = -3, vo = 2.25, zos = -1.88,
+    po4 = 0, no3 = 64.283)
+)
 }
 \arguments{
 \item{stars_obj}{stars, stars object up to 3 dimensions to correct}

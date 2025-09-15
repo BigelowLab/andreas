@@ -1,3 +1,15 @@
+#' List the available LUTS
+#' 
+#' @export
+#' @param path chr, the path to the LUT directory
+#' @return character vector of one of more LUT names
+list_luts = function(path = copernicus::copernicus_path("lut")){
+  ff = list.files(path, pattern = "^.*\\.csv$")
+  ff = sub(".csv", "", ff, fixed = TRUE)
+  ix = grepl("[[:upper:]]", ff)
+  ff[ix]
+}
+
 #' Read a product LUT used for searches and merge with a product description
 #' 
 #' @export

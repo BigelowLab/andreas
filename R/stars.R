@@ -32,7 +32,13 @@ st_match = function(x, y, ...){
 #'  fixed
 #' }
 correct_andreas <- function(stars_obj, land_mask, 
-                            replacement_values = list("mlotst" = 700)) {
+                            replacement_values = list("mlotst" = 700,
+                                                      "uo" = -2,
+                                                      "bottomT" = -3,
+                                                      "vo" = 2.25,
+                                                      "zos" = -1.88,
+                                                      "po4" = 0,
+                                                      "no3" = 64.283)) {
   if (!identical(dim(stars_obj)[1:2], dim(land_mask)[1:2])){
     stop("stars_obj and land_mask must have the same x/y dimensions")
   }
