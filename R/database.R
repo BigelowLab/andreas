@@ -1,3 +1,19 @@
+#' Retrieve the alphanumeric file extension
+#' @seealso https://stackoverflow.com/questions/7779037/extract-file-extension-from-file-path
+#' @export 
+#' @param x chr one or more filenames
+#' @param sep chr or NA, if character then prepend this to any extensions found
+#' @return character string
+get_extension <- function(x = c("a.tif", "b.nc", "c.txt", "d.j-p"), sep = "."){
+  pos <- regexpr("\\.([[:alnum:]]+)$", x)
+  x = ifelse(pos > -1L, substring(x, pos + 1L), "")
+  if (!is.null(sep) && !is.na(sep)){
+    ix = nchar(x) > 0
+    x[ix] <- paste0(sep[1], x[ix])
+  }
+  x
+}
+
 #' Compose a file name from a database (possibly merged)
 #'
 #' @export
@@ -6,7 +22,7 @@
 #' @param ext character, the file name extension to apply (including dot)
 #' @return character vector of file names in form
 #'         \code{<path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext}
-compose_filename <- function(x, path = ".", ext = ".tif"){
+compose_filename <- function(x, path = ".", ext = get_extension(x)){
   if (inherits(x, "merged") || "product" %in% colnames(x)){
     path = file.path(path, x$product)
   }
@@ -42,7 +58,7 @@ compose_filename <- function(x, path = ".", ext = ".tif"){
 #' }
 decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_uo_raw.tif", 
                                             "cmems_mod_glo_phy_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_zos_raw.tif"),
-                                     ext = ".tif"){
+                                     ext = get_extension(x)){
   
   datetime = function(x = c("2022-01-15T000000", "2022-01-16T123456")){
     list(date = as.Date(substring(x, 1,10), format = "%Y-%m-%d"),
@@ -53,7 +69,7 @@ decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__
     gsub(pattern, replacement, x, fixed = fixed, ...)
   }
   x <- basename(x) |>
-    global_sub(pattern = ext, replacement = "") |>
+    global_sub(pattern = ext[1], replacement = "") |>
     strsplit(split = "__", fixed = TRUE)
   y = sapply(x, '[[', 2) |>
     strsplit(split = "_", fixed = TRUE)
