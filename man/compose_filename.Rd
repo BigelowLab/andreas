@@ -4,7 +4,7 @@
 \alias{compose_filename}
 \title{Compose a file name from a database (possibly merged)}
 \usage{
-compose_filename(x, path = ".", ext = get_extension(x))
+compose_filename(x, path = ".", ext = ".tif")
 }
 \arguments{
 \item{x}{database (tibble) possibly merged, with date, var, depth}

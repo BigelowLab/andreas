@@ -8,7 +8,7 @@ decompose_filename(
   x =
     c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_uo_raw.tif",
     "cmems_mod_glo_phy_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_zos_raw.tif"),
-  ext = get_extension(x)
+  ext = get_extension(x)[1]
 )
 }
 \arguments{

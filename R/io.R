@@ -24,6 +24,23 @@ write_andreas = function(x, db, path = ".", check_path = TRUE){
 }
 
 
+read_copernicus_nc = function(db, path){
+
+  db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
+                    format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
+  x = dplyr::group_by(db, variable) |>
+    dplyr::group_map(
+      function(grp, key){
+        f = andreas::compose_filename(grp, path, ext = ".nc")
+        ss = lapply(f, function(f){stars::read_ncdf(f,var = grp$variable[1]) |>
+            dplyr::slice("time",1)})
+        do.call(c, append(ss, list(along = list(time = grp$datetime)))) |>
+          rlang::set_names(grp$variable[1])
+      }, .keep = TRUE)
+  do.call(c, append(x, list(along = NA_integer_)))
+}
+
+
 #' Read one or more copernicus files
 #' 
 #' By default the function tries to return an object with (variables of x, y, time) 
@@ -35,28 +52,50 @@ write_andreas = function(x, db, path = ".", check_path = TRUE){
 #' @param path char, the path to the data set
 #' @param crs value to set the CRS
 #' @param bb NULL or and object used for cropping
+#' @param ext chr the file extension, tyocially '.tif' but set to '.nc' for 
+#'  ncdf fils that might have depth
 #' @param ... other arguments for `stars::st_crop`
 #' @return stars object
-read_copernicus = function(db, path, crs = 4326, bb = NULL){
+read_copernicus = function(db, path, crs = 4326, bb = NULL, ext = ".tif",...){
   db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
-                       format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
-  db$file = compose_filename(db, path)
-  # read each variable
-  # check that each variable has the same time-dim
-  # if ok then bind, otherwise error
-  r = db |>
-    dplyr::group_by(.data$variable) |>
-    dplyr::group_map(
-      function(tbl, key){
-        if (nrow(tbl) > 1 ){
-          s = stars::read_stars(tbl$file, along = list(time = tbl$datetime)) |>
-            rlang::set_names(tbl$variable[1])
-        } else {
-          s = stars::read_stars(tbl$file) |>
-            rlang::set_names(tbl$variable[1])
-        }
-      }, .keep = TRUE) |>
-    copernicus::bind_stars() |>
+                           format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
+  
+  if (ext[1] == ".nc"){
+    #db$file = compose_filename(db, path, ext = ext[1])
+    db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
+                             format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
+    x = dplyr::group_by(db, variable) |>
+      dplyr::group_map(
+        function(grp, key){
+          f = andreas::compose_filename(grp, path, ext = ".nc")
+          ss = lapply(f, function(f){
+            suppressMessages(stars::read_ncdf(f,var = grp$variable[1])) |>
+              dplyr::slice("time",1)})
+          do.call(c, append(ss, list(along = list(time = grp$datetime)))) |>
+            rlang::set_names(grp$variable[1])
+        }, .keep = TRUE)
+    r = do.call(c, append(x, list(along = NA_integer_)))
+  } else {
+    db$file = compose_filename(db, path, ext = ext[1])
+    # read each variable
+    # check that each variable has the same time-dim
+    # if ok then bind, otherwise error
+    r = db |>
+      dplyr::group_by(.data$variable) |>
+      dplyr::group_map(
+        function(tbl, key){
+          if (nrow(tbl) > 1 ){
+            s = stars::read_stars(tbl$file, along = list(time = tbl$datetime)) |>
+              rlang::set_names(tbl$variable[1])
+          } else {
+            s = stars::read_stars(tbl$file) |>
+              rlang::set_names(tbl$variable[1])
+          }
+        }, .keep = TRUE) |>
+      copernicus::bind_stars()
+  }
+
+  r = r |>
     sf::st_set_crs(crs)
   
   if (!is.null(bb)) {

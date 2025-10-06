@@ -22,7 +22,7 @@ get_extension <- function(x = c("a.tif", "b.nc", "c.txt", "d.j-p"), sep = "."){
 #' @param ext character, the file name extension to apply (including dot)
 #' @return character vector of file names in form
 #'         \code{<path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext}
-compose_filename <- function(x, path = ".", ext = get_extension(x)){
+compose_filename <- function(x, path = ".", ext = ".tif"){
   if (inherits(x, "merged") || "product" %in% colnames(x)){
     path = file.path(path, x$product)
   }
@@ -58,7 +58,7 @@ compose_filename <- function(x, path = ".", ext = get_extension(x)){
 #' }
 decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_uo_raw.tif", 
                                             "cmems_mod_glo_phy_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_zos_raw.tif"),
-                                     ext = get_extension(x)){
+                                     ext = get_extension(x)[1]){
   
   datetime = function(x = c("2022-01-15T000000", "2022-01-16T123456")){
     list(date = as.Date(substring(x, 1,10), format = "%Y-%m-%d"),

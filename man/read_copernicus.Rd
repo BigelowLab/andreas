@@ -5,7 +5,7 @@
 \alias{read_andreas}
 \title{Read one or more copernicus files}
 \usage{
-read_copernicus(db, path, crs = 4326, bb = NULL)
+read_copernicus(db, path, crs = 4326, bb = NULL, ext = ".tif", ...)
 
 read_andreas(db, path, ...)
 }
@@ -17,6 +17,9 @@ read_andreas(db, path, ...)
 \item{crs}{value to set the CRS}
 
 \item{bb}{NULL or and object used for cropping}
+
+\item{ext}{chr the file extension, tyocially '.tif' but set to '.nc' for 
+ncdf fils that might have depth}
 
 \item{...}{other arguments for `stars::st_crop`}
 }
