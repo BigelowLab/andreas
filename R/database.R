@@ -55,6 +55,7 @@ compose_filename <- function(x, path = ".", ext = ".tif"){
 #'  \item{period chr, one of day, month, etc}
 #'  \item{variable chr, the variable name}
 #'  \item{treatment chr, treatment such as raw, mean, sum, etc}
+#'  \item{name chr, the short common name}
 #' }
 decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_uo_raw.tif", 
                                             "cmems_mod_glo_phy_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_zos_raw.tif"),
@@ -82,7 +83,8 @@ decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__
     depth = sapply(y, '[[', 2),
     period = sapply(y, '[[', 3),
     variable = sapply(y, '[[', 4),
-    treatment = sapply(y, '[[', 5) )
+    treatment = sapply(y, '[[', 5),
+    name = common_name(variable))
 }
 
 #' Construct a database tibble give a data path
@@ -113,8 +115,8 @@ build_database <- function(path, pattern = "*.tif",
 #' @param exclude chr, one or more character patterns to exclude
 #' @return file list
 list_files <- function(path,
-                           pattern = "*.tif", 
-                           exclude = "static"){
+                       pattern = "*.tif", 
+                       exclude = "static"){
   if (missing(path)) stop("path is required")
   ff = list.files(path[1], pattern = utils::glob2rx(pattern),
                   recursive = TRUE, full.names = TRUE) 
@@ -153,11 +155,15 @@ read_database <- function(path,
             depth = "",
             period = "",
             variable = "",
-            treatment = "") |>
+            treatment = "",
+            name = "") |>
       dplyr::slice(0)
   } else {
     # date var depth
     db = suppressMessages(readr::read_csv(filepath, col_types = 'cDccccc'))
+    if (!"name" %in% names(db)) {
+      db = dplyr::mutate(db, name = common_name(.data$variable))
+    }
   }
   db
 }
@@ -216,7 +222,7 @@ append_database <- function(x, path, filename = "database"){
 #' @export
 #' @return charcater vector of variable names
 database_variables = function(){
-  c("id", "date", "time", "depth", "period", "variable", "treatment")
+  c("id", "date", "time", "depth", "period", "variable", "treatment", "name")
 }
 
 #' Select just the db columns

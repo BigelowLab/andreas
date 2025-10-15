@@ -32,3 +32,41 @@ mgrepl <- function(pattern, x, op = `|`, ... ){
   Reduce(op, lapply(pattern, grepl, x, ...))
 }
 
+
+#' Retrieve a look up table (lut) relating variable names
+#' 
+#' @export
+#' @param table with "variable", "name", "longname" and "unit"
+variable_lut = function(){
+  dplyr::tribble(
+    ~variable, ~name, ~longname, ~unit,
+    "thetao", "temp", "potential temperature", "(\u00b0C)",
+    "bottomT", "temp", "bottom temperature", "(\u00b0C)",
+    "tob", "temp", "bottom temperature", "(\u00b0C)",
+    "sst", "temp", "sea surface temperature", "(\u00b0C)",
+    "so", "sal", "salinity", "(psu)",
+    "sob", "sal", "bottom salinity", "(psu)",
+    "sss", "sal", "sea surface salinity", "(psu)",
+    "pbo", "pbo", "bottom pressure", "",
+    "mlotst", "mlotst", "mixed layer depth", "(m)",
+    "uo", "uo", "eastward current velocity", "(m/s)",
+    "vo", "vo", "northward current velocity", "(m/s)",
+    "wo", "wo", "upward current velocity", "(m/s)",
+    "zos", "zos", "sea surface height", "(m)")
+}
+
+#' Retrieve the common name of a given variable name
+#' 
+#' @export
+#' @param x chr, vector of one or more variable names
+#' @param lut table of look up values
+#' @return charcater vector of short common names
+common_name = function(x = c("bottomT", "pbo", "sob", "tob", "mlotst", 
+                             "so", "thetao", "uo", "vo", "wo", "zos"),
+                       lut = variable_lut()){
+  
+  common = lut$name |>
+    rlang::set_names(lut$variable)
+  common[x] |>
+    unname()
+}

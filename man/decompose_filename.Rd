@@ -26,6 +26,7 @@ table (tibble) database
  \item{period chr, one of day, month, etc}
  \item{variable chr, the variable name}
  \item{treatment chr, treatment such as raw, mean, sum, etc}
+ \item{name chr, the short common name}
 }
 }
 \description{
