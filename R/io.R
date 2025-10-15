@@ -32,10 +32,15 @@ read_copernicus_nc = function(db, path){
     dplyr::group_map(
       function(grp, key){
         f = andreas::compose_filename(grp, path, ext = ".nc")
-        ss = lapply(f, function(f){stars::read_ncdf(f,var = grp$variable[1]) |>
-            dplyr::slice("time",1)})
+        ss = lapply(seq_along(f),
+          function(i){
+            stars::read_ncdf(f[i],var = grp$variable[i]) |>
+              dplyr::slice("time",1)
+          })
+        #ss = lapply(f, function(f){stars::read_ncdf(f,var = grp$variable[1]) |>
+        #    dplyr::slice("time",1)})
         do.call(c, append(ss, list(along = list(time = grp$datetime)))) |>
-          rlang::set_names(grp$variable[1])
+          rlang::set_names(grp$name[1])
       }, .keep = TRUE)
   do.call(c, append(x, list(along = NA_integer_)))
 }
@@ -68,11 +73,13 @@ read_copernicus = function(db, path, crs = 4326, bb = NULL, ext = ".tif",...){
       dplyr::group_map(
         function(grp, key){
           f = andreas::compose_filename(grp, path, ext = ".nc")
-          ss = lapply(f, function(f){
-            suppressMessages(stars::read_ncdf(f,var = grp$variable[1])) |>
-              dplyr::slice("time",1)})
+          ss = lapply(seq_along(f),
+            function(i){
+                suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i])) |>
+                  dplyr::slice("time",1)
+              })
           do.call(c, append(ss, list(along = list(time = grp$datetime)))) |>
-            rlang::set_names(grp$variable[1])
+            rlang::set_names(grp$name[1])
         }, .keep = TRUE)
     r = do.call(c, append(x, list(along = NA_integer_)))
   } else {
@@ -86,10 +93,10 @@ read_copernicus = function(db, path, crs = 4326, bb = NULL, ext = ".tif",...){
         function(tbl, key){
           if (nrow(tbl) > 1 ){
             s = stars::read_stars(tbl$file, along = list(time = tbl$datetime)) |>
-              rlang::set_names(tbl$variable[1])
+              rlang::set_names(tbl$name[1])
           } else {
             s = stars::read_stars(tbl$file) |>
-              rlang::set_names(tbl$variable[1])
+              rlang::set_names(tbl$name[1])
           }
         }, .keep = TRUE) |>
       copernicus::bind_stars()
@@ -117,7 +124,7 @@ read_andreas = function(db, path, ...){
 #'
 #' @export
 #' @param filename character, the full path specification
-#' @param banded logical, see \code{\link{get_var}}.  Setting to FALSE
+#' @param banded logical, see `get_var()`.  Setting to FALSE
 #'        returns single band objects (depth and time dropped)
 #' @param bind logical, if TRUE bind the outputs into one stars object
 #' @return list of \code{stars} objects
