@@ -7,6 +7,7 @@
 list_databases(
   path = copernicus::copernicus_path(),
   pattern = "^database$",
+  exclude = c("gom3d", "mthw"),
   form = c("path", "table")[1]
 )
 }
@@ -14,6 +15,8 @@ list_databases(
 \item{path}{chr, the root data directory}
 
 \item{pattern}{chr, database filename regex pattern to search for}
+
+\item{exclude}{chr, names of database paths to exclude (fixed pattern)}
 
 \item{form}{one of "path" or "table"}
 }

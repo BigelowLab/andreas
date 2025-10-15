@@ -258,10 +258,12 @@ missing_records = function(x,
 #' @export
 #' @param path chr, the root data directory
 #' @param pattern chr, database filename regex pattern to search for
+#' @param exclude chr, names of database paths to exclude (fixed pattern)
 #' @param form one of "path" or "table"
 #' @return database paths relative to the root path
 list_databases = function(path = copernicus::copernicus_path(),
                           pattern = "^database$",
+                          exclude = c("gom3d", "mthw"),
                           form = c("path", "table")[1]){
   
     ff = lapply(list.dirs(path, full.names = TRUE, recursive = FALSE),
@@ -272,11 +274,16 @@ list_databases = function(path = copernicus::copernicus_path(),
                 } ) |>
       unlist()
   ff = sub(paste0(path,.Platform$file.sep), "", dirname(ff))
+  if (length(exclude) > 0 && !is.na(exclude[1])){
+    ix = mgrepl(exclude, ff, fixed = TRUE)
+    ff = ff[!ix]
+  } 
   if (tolower(form[1]) == "table"){
     ss = strsplit(ff, .Platform$file.sep, fixed = TRUE)
     ff = dplyr::tibble(
       region = sapply(ss, "[[", 1),
       product_id = sapply(ss, "[[", 2))
   }
+  
   ff
 }
