@@ -15,25 +15,26 @@ create_lut(
 
 \item{catalog}{table of products (unflattened)}
 
-\item{save_lut}{log, if TRUE save to CSV format in `inst/lut`}
+\item{save_lut}{log, if TRUE save to CSV format in \code{inst/lut}}
 }
 \value{
 a table of look up values.  You'll edit this file to decide which to fetch
- and what depths to fetch from.  Here's what is in the output table
- 
-* product_id
-* title
-* dataset_id
-* dataset_name
-* short_name
-* standard_name
-* units
-* depth "sur"
-* fetch  "no"
-* mindepth 0
-* maxdepth 1
+and what depths to fetch from.  Here's what is in the output table
+\itemize{
+\item product_id
+\item title
+\item dataset_id
+\item dataset_name
+\item short_name
+\item standard_name
+\item units
+\item depth "sur"
+\item fetch  "no"
+\item mindepth 0
+\item maxdepth 1
+}
 }
 \description{
-If you chose to save (see `save_lut`) then be advised existing an existing
+If you chose to save (see \code{save_lut}) then be advised existing an existing
 lut will be overwritten.
 }

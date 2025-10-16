@@ -10,13 +10,14 @@ Description: Provides download, archiving and access to Copernicus related local
 URL: https://github.com/BigelowLab/andreas
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Depends: R (>= 4.1.0)
+Roxygen: list(markdown = TRUE)
 Imports:
   rlang,
   copernicus,
   nicolaus,
   snakecase,
+  stringr,
   dplyr,
   tidyr,
   sf,

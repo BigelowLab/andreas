@@ -9,11 +9,11 @@ merge_database(path = copernicus_path("chfc"), rm_dups = TRUE, ...)
 \arguments{
 \item{path}{chr the path to the regional data repository}
 
-\item{rm_dups}{logical, if TRUE remove duplicates preferentially 
-retaining MULTIYEAR over ANALAYSISFORECAST products and chosing
-"my" over "myint" datasets on a given date}
+\item{rm_dups}{logical, if TRUE remove duplicates preferentially
+retaining MULTIYEAR over ANALAYSISFORECAST products and choosing
+"my" over "myint" datasets on a given date for each name-depth group}
 
-\item{...}{other arguments for [read_database]}
+\item{...}{other arguments for \link{read_database}}
 }
 \value{
 a merged database

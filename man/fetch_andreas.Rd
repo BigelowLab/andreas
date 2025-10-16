@@ -2,7 +2,7 @@
 % Please edit documentation in R/fetch.R
 \name{fetch_andreas}
 \alias{fetch_andreas}
-\title{A wrapper around [copernicus::fetch_copernicus()] to fetch Copernicus data as
+\title{A wrapper around \code{\link[copernicus:fetch_copernicus]{copernicus::fetch_copernicus()}} to fetch Copernicus data as
 stars objects.}
 \usage{
 fetch_andreas(
@@ -28,20 +28,20 @@ fetch_andreas(
 \item{coerce_time}{logical, if TRUE then coerce min and max time to fit within
 the catalog offering}
 
-\item{must_have_time}{logical, if TRUE and the raster does not have a time 
+\item{must_have_time}{logical, if TRUE and the raster does not have a time
 dimension (ala only one day) then add one}
 
 \item{verbose}{logical, if TRUE be verbose}
 
-\item{...}{other arguments passed to [copernicus::fetch_copernicus()]}
+\item{...}{other arguments passed to \code{\link[copernicus:fetch_copernicus]{copernicus::fetch_copernicus()}}}
 }
 \value{
-a list of stars objects groups by dataset_id and depth.  Each element, 
-if not NULL, will have an "andreas" attribute that provides a list with 
-dataset_id, depth and time.  We use this because a degenerate dimension (just one 
+a list of stars objects groups by dataset_id and depth.  Each element,
+if not NULL, will have an "andreas" attribute that provides a list with
+dataset_id, depth and time.  We use this because a degenerate dimension (just one
 element) may be dropped, and so the time/depth context may be lost
 }
 \description{
-A wrapper around [copernicus::fetch_copernicus()] to fetch Copernicus data as
+A wrapper around \code{\link[copernicus:fetch_copernicus]{copernicus::fetch_copernicus()}} to fetch Copernicus data as
 stars objects.
 }

@@ -11,10 +11,10 @@ extract_points(x, y, form = c("long", "wide"))
 
 \item{y}{sf point data}
 
-\item{form}{chr one of either "long" (the default) or "wide" to control 
+\item{form}{chr one of either "long" (the default) or "wide" to control
 output column layout.}
 
-\item{...}{other arguments passed to `stars::st_extract()`}
+\item{...}{other arguments passed to \code{stars::st_extract()}}
 }
 \value{
 table of variable data for each input point

@@ -287,3 +287,4 @@ list_databases = function(path = copernicus::copernicus_path(),
   
   ff
 }
+

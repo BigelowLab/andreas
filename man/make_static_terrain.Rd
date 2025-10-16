@@ -2,24 +2,24 @@
 % Please edit documentation in R/static.R
 \name{make_static_terrain}
 \alias{make_static_terrain}
-\title{Given a depth raster, compute a various [terrain metrics](https://rspatial.github.io/terra/reference/terrain.html)}
+\title{Given a depth raster, compute a various \href{https://rspatial.github.io/terra/reference/terrain.html}{terrain metrics}}
 \usage{
 make_static_terrain(x = copernicus_path(list_databases())[[1]], v = "TPI", ...)
 }
 \arguments{
-\item{x}{a stars object that is a deptho or some bathymetry. Or, alternatively, 
-it is the path to a particular product suite, such as 
-`copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")`.  In this case we 
+\item{x}{a stars object that is a deptho or some bathymetry. Or, alternatively,
+it is the path to a particular product suite, such as
+\code{copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")}.  In this case we
 handle reading and writing the files for you}
 
-\item{v}{character one of slope, aspect, TPI  (default), TRI, TRIriley, 
+\item{v}{character one of slope, aspect, TPI  (default), TRI, TRIriley,
 TRIrmsd, roughness, flowdir}
 
-\item{...}{other arguments for [terra::terrain]}
+\item{...}{other arguments for \link[terra:terrain]{terra::terrain}}
 }
 \value{
 a stars object as a terrain metric
 }
 \description{
-The [terra package](https://CRAN.R-project.org/package=terra) is required.
+The \href{https://CRAN.R-project.org/package=terra}{terra package} is required.
 }

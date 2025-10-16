@@ -15,7 +15,7 @@ read_global_static(
 
 \item{product}{chr, the copernicus product_id}
 
-\item{bb}{bounding box as a numeric vector, st_bbox, or an object from which a 
+\item{bb}{bounding box as a numeric vector, st_bbox, or an object from which a
 bounding box can be derived. NULL to skip.}
 }
 \value{

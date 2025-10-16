@@ -3,7 +3,7 @@
 \name{subset_static_by_region}
 \alias{subset_static_by_region}
 \title{A convenience function that subsets (or copies) the primary static arrays
-(in `copernicus_path("static")`) to region specified.}
+(in \code{copernicus_path("static")}) to region specified.}
 \usage{
 subset_static_by_region(
   name = c("deptho", "mask", "deptho_lev"),
@@ -17,8 +17,8 @@ subset_static_by_region(
 \item{regions}{chr one or more destination region name}
 
 \item{bb}{bounding box - something from which an st_bbox can be made.
-Ignored if region is "world", in which case we essentially copy to world. If 
-not provided and the `cofbb` package is available, then retrieve that
+Ignored if region is "world", in which case we essentially copy to world. If
+not provided and the \code{cofbb} package is available, then retrieve that
 dynamically}
 }
 \value{
@@ -26,5 +26,5 @@ NULL invisibly
 }
 \description{
 A convenience function that subsets (or copies) the primary static arrays
-(in `copernicus_path("static")`) to region specified.
+(in \code{copernicus_path("static")}) to region specified.
 }

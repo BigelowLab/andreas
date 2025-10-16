@@ -15,7 +15,7 @@ compose_filename(x, path = ".", ext = ".tif")
 }
 \value{
 character vector of file names in form
-        \code{<path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext}
+\code{<path>/YYYY/mmdd/id__datetime_depth_period_variable_treatment.ext}
 }
 \description{
 Compose a file name from a database (possibly merged)

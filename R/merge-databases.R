@@ -23,8 +23,8 @@
 #' @param path chr the path to the regional data repository
 #' @param ... other arguments for [read_database]
 #' @param rm_dups logical, if TRUE remove duplicates preferentially 
-#'   retaining MULTIYEAR over ANALAYSISFORECAST products and chosing
-#'   "my" over "myint" datasets on a given date
+#'   retaining MULTIYEAR over ANALAYSISFORECAST products and choosing
+#'   "my" over "myint" datasets on a given date for each name-depth group
 #' @return a merged database
 merge_database = function(path = copernicus_path("chfc"), 
                           rm_dups = TRUE, 
@@ -42,14 +42,13 @@ merge_database = function(path = copernicus_path("chfc"),
     dplyr::bind_rows()
   
   if (rm_dups){
-    db = dplyr::arrange(db, .data$date, .data$product, dplyr::desc(.data$id))  
-                        # relies on ANALYSISFORECAST alphabetically 
-                        # leading MULTIYEAR in the product variable
-                        # and my preceding myint in the id (dataset) reversed variable
-                        # it's just dumb luck that this works
-    ix = dplyr::select(db, dplyr::all_of(c("date", "variable"))) |>
-      duplicated(fromLast = TRUE)
-    db = dplyr::filter(db, !ix)
+    d = decompose_dataset_id(db$id)
+    db = db |>
+      dplyr::mutate(pref_order = d$pref_order) |>
+      dplyr::arrange(.data$date, .data$depth, .data$name, .data$pref_order) |>
+      dplyr::group_by(.data$date, .data$depth, .data$name) |>
+      dplyr::slice_head(n=1) |>
+      dplyr::select(-dplyr::all_of("pref_order"))
   }
   class(db) <- c("merged", class(db))
   db

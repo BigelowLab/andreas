@@ -9,7 +9,7 @@ unpack_copernicus(filename, banded = FALSE, bind = TRUE)
 \arguments{
 \item{filename}{character, the full path specification}
 
-\item{banded}{logical, see `get_var()`.  Setting to FALSE
+\item{banded}{logical, see \code{get_var()}.  Setting to FALSE
 returns single band objects (depth and time dropped)}
 
 \item{bind}{logical, if TRUE bind the outputs into one stars object}

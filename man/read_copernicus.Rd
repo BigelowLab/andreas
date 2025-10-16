@@ -18,16 +18,16 @@ read_andreas(db, path, ...)
 
 \item{bb}{NULL or and object used for cropping}
 
-\item{ext}{chr the file extension, tyocially '.tif' but set to '.nc' for 
+\item{ext}{chr the file extension, tyocially '.tif' but set to '.nc' for
 ncdf fils that might have depth}
 
-\item{...}{other arguments for `stars::st_crop`}
+\item{...}{other arguments for \code{stars::st_crop}}
 }
 \value{
 stars object
 }
 \description{
-By default the function tries to return an object with (variables of x, y, time) 
+By default the function tries to return an object with (variables of x, y, time)
 dimensions.  If multiple times are provided, then each var must be equally
 represented.
 }

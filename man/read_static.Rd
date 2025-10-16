@@ -15,15 +15,15 @@ read_static(
 
 \item{path}{chr, the copernicus data path}
 
-\item{bb}{bounding box as a numeric vector, st_bbox, or an object from which a 
+\item{bb}{bounding box as a numeric vector, st_bbox, or an object from which a
 bounding box can be derived. NULL to skip.}
 }
 \value{
 stars object
 }
 \description{
-*N.B.* When combining these with other Copernicus layers using `c()` you may 
+\emph{N.B.} When combining these with other Copernicus layers using \code{c()} you may
 encounter a message that says R doesn't know how to combine them.  Just increase
-the `tolerance` value to `1e-6` and all will be well.  I can't explain why this
+the \code{tolerance} value to \code{1e-6} and all will be well.  I can't explain why this
 mismatch occurs, but this is the solution.
 }

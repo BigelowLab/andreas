@@ -16,7 +16,7 @@ correct_andreas(
 \item{stars_obj}{stars, stars object up to 3 dimensions to correct}
 
 \item{land_mask}{stars, the land mask associated with the stars object (same extent and res) where
-water pixels are non-zero and land is zero.  Must have the same footprint as `stars_obj`}
+water pixels are non-zero and land is zero.  Must have the same footprint as \code{stars_obj}}
 
 \item{replacement_values}{list, named list of attribute names and a value to sub in for any missing entries.}
 }

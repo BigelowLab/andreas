@@ -17,7 +17,7 @@ build_database(
 
 \item{pattern}{character, the filename pattern (as glob) to search for}
 
-\item{save_db}{logical, if TRUE save the database via [write_database]}
+\item{save_db}{logical, if TRUE save the database via \link{write_database}}
 
 \item{exclude}{chr, one or more character patterns to exclude}
 

@@ -9,7 +9,7 @@ remap_to_water_pixel(x = read_buoys(), lut = read_static("lut"))
 \arguments{
 \item{x}{sf object of points}
 
-\item{lut}{stars object as per `read_static("lut", path)`}
+\item{lut}{stars object as per \code{read_static("lut", path)}}
 
 \item{sf}{object with new geometry}
 }

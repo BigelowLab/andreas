@@ -13,19 +13,19 @@ fetch_product_by_day(
 )
 }
 \arguments{
-\item{p}{table of product info to be grouped by `dataset_id`}
+\item{p}{table of product info to be grouped by \code{dataset_id}}
 
 \item{x}{Date (or YYYY-mm-dd string)}
 
 \item{bb}{bounding box or somehting from which a bounding box can be found.}
 
-\item{...}{other arguments for [fetch_copernicus_cli_subset]}
+\item{...}{other arguments for \link{fetch_copernicus_cli_subset}}
 }
 \value{
 list of stars objects (one for each dataset) possibly with NULLs for unknown datasets
 }
 \description{
 This only works for known products/datasets.  Unknowns will generate a
-warning and return NULL. For each dataset only a single depth layer is 
+warning and return NULL. For each dataset only a single depth layer is
 returned.
 }

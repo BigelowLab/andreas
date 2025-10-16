@@ -9,7 +9,7 @@ archive_andreas(x, lut, path = ".", time = NULL, ...)
 \arguments{
 \item{x}{stars object}
 
-\item{lut}{a tabular database (ala from `read_product_lut()`)}
+\item{lut}{a tabular database (ala from \code{read_product_lut()})}
 
 \item{path}{char, the data path}
 

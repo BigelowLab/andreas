@@ -12,24 +12,26 @@ read_product_lut(
 \arguments{
 \item{product_id}{chr, the product identifier.  The associated file must exist}
 
-\item{description}{table, the table produced by [nicolaus::read_catalog] for
-the specified `product_id`}
+\item{description}{table, the table produced by \link[nicolaus:read_catalog]{nicolaus::read_catalog} for
+the specified \code{product_id}}
 }
 \value{
 a table with the following
-* product_id
-* dataset_id
-* dataset_name
-* name chr short_name converted to camelCase (used for file View(xstorage)
-* short_name
-* standard_name
-* units 
-* depth really a depth name "sur", "bot", "mld", "zos" or NA but could be a number (as character())
-* fetch   "yes", "no" or NA
-* mindepth for `copernicusmarine` CLI request
-* maxdepth for `copernicusmarine` CLI request
-* start_time known data service availability
-* end_time known data service availability
+\itemize{
+\item product_id
+\item dataset_id
+\item dataset_name
+\item name chr short_name converted to camelCase (used for file View(xstorage)
+\item short_name
+\item standard_name
+\item units
+\item depth really a depth name "sur", "bot", "mld", "zos" or NA but could be a number (as character())
+\item fetch   "yes", "no" or NA
+\item mindepth for \code{copernicusmarine} CLI request
+\item maxdepth for \code{copernicusmarine} CLI request
+\item start_time known data service availability
+\item end_time known data service availability
+}
 }
 \description{
 Read a product LUT used for searches and merge with a product description

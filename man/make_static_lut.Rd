@@ -2,22 +2,22 @@
 % Please edit documentation in R/static.R
 \name{make_static_lut}
 \alias{make_static_lut}
-\title{Given a mask raster, compute a [raster-lut](https://github.com/BigelowLab/twinkle/blob/eae4a99bafbe5cc81ecfc8ddfb3d9f89c04f010e/R/stars.R#L160)}
+\title{Given a mask raster, compute a \href{https://github.com/BigelowLab/twinkle/blob/eae4a99bafbe5cc81ecfc8ddfb3d9f89c04f010e/R/stars.R#L160}{raster-lut}}
 \usage{
 make_static_lut(x = copernicus_path(list_databases())[[1]], ...)
 }
 \arguments{
-\item{x}{a stars object that is a mask (0/1) Or, alternatively, 
-it is the path to a particular product suite, such as 
-`copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")`.  In this case we 
+\item{x}{a stars object that is a mask (0/1) Or, alternatively,
+it is the path to a particular product suite, such as
+\code{copernicus_path("chfc", "GLOBAL_MULTIYEAR_PHY_001_030")}.  In this case we
 handle reading and writing the files for you}
 
-\item{...}{other arguments for [twinkle::make_raster_lut].  Ignored is `x`
+\item{...}{other arguments for \link[twinkle:make_raster_lut]{twinkle::make_raster_lut}.  Ignored is \code{x}
 is a path rather than stars object.}
 }
 \value{
 a stars object as a LUT
 }
 \description{
-The [twinkle package](https://github.com/BigelowLab/twinkle) is required.
+The \href{https://github.com/BigelowLab/twinkle}{twinkle package} is required.
 }

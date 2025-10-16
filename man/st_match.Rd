@@ -11,7 +11,7 @@ st_match(x, y, ...)
 
 \item{y}{stars object serves as template}
 
-\item{...}{other arguments for [stars::st_crop] and [stars::st_warp]}
+\item{...}{other arguments for \link[stars:st_crop]{stars::st_crop} and \link[stars:st_warp]{stars::st_warp}}
 }
 \value{
 stars object
