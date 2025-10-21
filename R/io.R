@@ -24,7 +24,8 @@ write_andreas = function(x, db, path = ".", check_path = TRUE){
 }
 
 
-read_copernicus_nc = function(db, path){
+read_copernicus_nc = function(db, path,
+                              name_by = c("variable", "name")[1]){
 
   db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
                     format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
@@ -40,7 +41,7 @@ read_copernicus_nc = function(db, path){
         #ss = lapply(f, function(f){stars::read_ncdf(f,var = grp$variable[1]) |>
         #    dplyr::slice("time",1)})
         do.call(c, append(ss, list(along = list(time = grp$datetime)))) |>
-          rlang::set_names(grp$name[1])
+          rlang::set_names(grp |> dplyr::pull(dplyr::all_of(name_by[1])) | getElement(1))
       }, .keep = TRUE)
   do.call(c, append(x, list(along = NA_integer_)))
 }
@@ -59,9 +60,16 @@ read_copernicus_nc = function(db, path){
 #' @param bb NULL or and object used for cropping
 #' @param ext chr the file extension, tyocially '.tif' but set to '.nc' for 
 #'  ncdf fils that might have depth
+#' @param name_by chr, one of "variable" or "name"  Individual variables 
+#'   are named by either the database "variable" or "name" attribute.
 #' @param ... other arguments for `stars::st_crop`
 #' @return stars object
-read_copernicus = function(db, path, crs = 4326, bb = NULL, ext = ".tif",...){
+read_copernicus = function(db, path, 
+                           crs = 4326, 
+                           bb = NULL, 
+                           ext = ".tif",
+                           name_by = c("variable", "name")[1],
+                           ...){
   db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
                            format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
   
@@ -75,11 +83,11 @@ read_copernicus = function(db, path, crs = 4326, bb = NULL, ext = ".tif",...){
           f = andreas::compose_filename(grp, path, ext = ".nc")
           ss = lapply(seq_along(f),
             function(i){
-                suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i])) |>
+                suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i]), name_by = name_by) |>
                   dplyr::slice("time",1)
               })
           do.call(c, append(ss, list(along = list(time = grp$datetime)))) |>
-            rlang::set_names(grp$name[1])
+            rlang::set_names(grp |> dplyr::pull(dplyr::all_of(name_by[1])) | getElement(1))
         }, .keep = TRUE)
     r = do.call(c, append(x, list(along = NA_integer_)))
   } else {
@@ -93,10 +101,10 @@ read_copernicus = function(db, path, crs = 4326, bb = NULL, ext = ".tif",...){
         function(tbl, key){
           if (nrow(tbl) > 1 ){
             s = stars::read_stars(tbl$file, along = list(time = tbl$datetime)) |>
-              rlang::set_names(tbl$name[1])
+              rlang::set_names(tbl[[name_by[1]]][1])
           } else {
             s = stars::read_stars(tbl$file) |>
-              rlang::set_names(tbl$name[1])
+              rlang::set_names(tbl[[name_by[1]]][1])
           }
         }, .keep = TRUE) |>
       copernicus::bind_stars()
