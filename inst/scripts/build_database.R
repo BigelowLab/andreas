@@ -37,7 +37,7 @@ fetch_data = function(tbl, key, cfg = NULL, db = NULL){
   period =  copernicus::dataset_period(tbl$dataset_id[1])
   dates = seq(from = min(tbl$start_time),
               to = max(tbl$end_time),
-              by = period) |>
+              by = strsplit(period, "-", fixed = TRUE)[[1]][1]) |>
     as.Date()
   isnewyear = format(dates, "%m%d") == "0101"
   db = lapply(seq_along(dates),
@@ -73,6 +73,7 @@ main = function(cfg){
   
   DB = andreas::read_database(cfg$path)
   P = andreas::read_product_lut(cfg$product) 
+  if ("dataset" %in% names(cfg)) P = dplyr::filter(P, dataset_id %in% cfg$dataset)
   db = P |>
     dplyr::filter(fetch == "yes") |>
     dplyr::group_by(dataset_id, depth) |>
@@ -89,7 +90,7 @@ Args = argparser::arg_parser("Build a copernicus database",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "chfc-GLOBAL_MULTIYEAR_PHY_001_030.yaml")) |>
+                                         "world-GLOBAL_MULTIYEAR_PHY_001_030.yaml")) |>
   parse_args()
 
 

@@ -106,7 +106,8 @@ fetch_andreas = function(x,
                                            time = time,
                                            depth = depth,
                                            ofile = filename,
-                                           bb = bb)
+                                           bb = bb,
+                                           form = "list")
         } else {
           s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1], 
                                            vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
@@ -114,12 +115,29 @@ fetch_andreas = function(x,
                                            depth = depth,
                                            ofile = filename,
                                            bb = bb,
+                                           form = "list",
                                            ...)
         }
         
         if (is.null(s) || inherits(s, "try-error")){
           s = NULL
         } else {
+          
+          # collapse to a single stars object - in general this might occur
+          # when some variables depend upon x, y, t and d while others depend
+          # upon x, y and t.  Our useage is for variable requests to be the 
+          # same depth layer.  But since theta, so and friends are available at 
+          # other depths they may arrive with an added depth dimension of 1
+          if (length(s) > 1){
+            ix = grepl("depth", names(s), fixed = TRUE)
+            if (any(ix)){
+              s[[ix]] = dplyr::st_slice(x[[ix]], "depth", 1)
+              s = c(ss[[1]], s[[2]], along = NA_integer_)
+            }
+          } else {
+            s = s[[1]] # only one element, so it becomes our stars object
+          }
+                
           # here we add an attribute to alert the user to the time and depth of 
           # values associated with this array.  They may be dropped (or may not have 
           # existed in the first place)
