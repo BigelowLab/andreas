@@ -13,6 +13,7 @@ fetch_andreas(
   coerce_time = TRUE,
   must_have_time = TRUE,
   verbose = FALSE,
+  form = c("stars", "filename", "list")[1],
   ...
 )
 }
@@ -32,6 +33,11 @@ the catalog offering}
 dimension (ala only one day) then add one}
 
 \item{verbose}{logical, if TRUE be verbose}
+
+\item{form}{str, one of "stars" or "filename" to return a stars object or the filename
+If "filename" then no attempt is made to read the downloaded file and \code{cleanup} is ignored.
+If "list" then read the file into a list of stars objects where variables are grouped
+by dimensional dependence.}
 
 \item{...}{other arguments passed to \code{\link[copernicus:fetch_copernicus]{copernicus::fetch_copernicus()}}}
 }

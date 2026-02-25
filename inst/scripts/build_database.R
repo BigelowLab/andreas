@@ -28,7 +28,10 @@ suppressPackageStartupMessages({
 # returns a database
 fetch_data = function(tbl, key, cfg = NULL, db = NULL){
   
-  charlier::info("build_database for dataset %s (%s)", tbl$dataset_id[1], tbl$depth[1])
+  charlier::info("build_database for dataset %s %s (%s)", 
+                 tbl$dataset_id[1], 
+                 paste(tbl$name, collapse = ","),
+                 tbl$depth[1])
   template = dplyr::slice(db, 0)
   
   # tbl holds one group of dataset_id, depth
@@ -45,9 +48,14 @@ fetch_data = function(tbl, key, cfg = NULL, db = NULL){
                 if (isnewyear[i]) charlier::info("starting %s", format(dates[i], "%Y"))
                 # note we get a list back - but we are interested in just the first (and only)
                 # element.
-                x = andreas::fetch_andreas(tbl,
-                                           bb = cfg$bb,
-                                           time = c(dates[i], dates[i]))[[1]]
+                if(FALSE){
+                  x = tbl
+                  bb = cfg$bb
+                  time = c(dates[i], dates[i])
+                }
+                x = fetch_andreas(tbl,
+                                  bb = cfg$bb,
+                                  time = c(dates[i], dates[i]))[[1]]
                 # example database
                 # id,date,time,depth,period,variable,treatment
                 # cmems_mod_glo_phy_my_0.083deg_P1D-m,1993-01-01,000000,bot,day,bottomT,raw
@@ -76,9 +84,10 @@ main = function(cfg){
   if ("dataset" %in% names(cfg)) P = dplyr::filter(P, dataset_id %in% cfg$dataset)
   db = P |>
     dplyr::filter(fetch == "yes") |>
-    dplyr::group_by(dataset_id, depth) |>
+    dplyr::group_by(dataset_id, depth, n_depth) |>
     dplyr::group_map(fetch_data, cfg = cfg, db = DB, .keep = TRUE) |>
     dplyr::bind_rows() |>
+    dplyr::mutate(name = andreas::common_name(variable)) |>
     andreas::append_database(cfg$path)
   
   return(0)

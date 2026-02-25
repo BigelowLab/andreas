@@ -41,6 +41,10 @@ coerce_dates = function(mydates = Sys.Date() + c(0,9),
 #' @param must_have_time logical, if TRUE and the raster does not have a time 
 #'   dimension (ala only one day) then add one
 #' @param verbose logical, if TRUE be verbose
+#' @param form str, one of "stars" or "filename" to return a stars object or the filename
+#'   If "filename" then no attempt is made to read the downloaded file and `cleanup` is ignored.
+#'   If "list" then read the file into a list of stars objects where variables are grouped
+#'   by dimensional dependence.
 #' @param ... other arguments passed to [copernicus::fetch_copernicus()]
 #' @return a list of stars objects groups by dataset_id and depth.  Each element, 
 #' if not NULL, will have an "andreas" attribute that provides a list with 
@@ -53,14 +57,20 @@ fetch_andreas = function(x,
                          coerce_time = TRUE,
                          must_have_time = TRUE, 
                          verbose = FALSE,
+                         form = c("stars", "filename", "list")[1],
                          ...){
   if (FALSE){
     drop_depth = TRUE
     time = c(Sys.Date(), as.Date(max(x$end_time)))
     bb = c(xmin = -77, xmax = -42.5, ymin = 36.5, ymax = 56.7)
     coerce_time = TRUE
+    must_have_time = TRUE
     verbose = TRUE
+    form = 'stars'
   }
+  
+  form = tolower(form[1])
+  
   r = x |>
     dplyr::group_by(.data$dataset_id, .data$depth) |>
     dplyr::group_map(
@@ -90,8 +100,8 @@ fetch_andreas = function(x,
             } # check max time
           } # corece_time?
         } # time is not NULL
+        
         if (interactive() && verbose){
-          
           # debugging notes
           cat("  fetch_dataset dataset_id: ", tbl$dataset_id[1], "\n")
           cat("  fetch_dataset vars: ", dplyr::pull(tbl, dplyr::all_of("short_name")) |>
@@ -100,72 +110,48 @@ fetch_andreas = function(x,
           cat("  fetch_dataset depth: ", paste(depth, collapse = ", "), "\n")
           cat("  fetch_dataset bb: ", sprintf("%f, %f, %f, %f", bb[1], bb[2], bb[3], bb[4]), "\n")
           cat("  fetch_dataset filename: ", basename(filename), "\n")
-          
-          s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1],
-                                           vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
-                                           time = time,
-                                           depth = depth,
-                                           ofile = filename,
-                                           bb = bb,
-                                           form = "list")
-        } else {
-          s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1], 
-                                           vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
-                                           time = time,
-                                           depth = depth,
-                                           ofile = filename,
-                                           bb = bb,
-                                           form = "list",
-                                           ...)
         }
+        
+        s = copernicus::fetch_copernicus(dataset_id = tbl$dataset_id[1], 
+                                         vars = dplyr::pull(tbl, dplyr::all_of("short_name")),
+                                         time = time,
+                                         depth = depth,
+                                         ofile = filename,
+                                         bb = bb,
+                                         form = form[1],
+                                         ...)
+        
         
         if (is.null(s) || inherits(s, "try-error")){
           s = NULL
         } else {
           
-          # collapse to a single stars object - in general this might occur
-          # when some variables depend upon x, y, t and d while others depend
-          # upon x, y and t.  Our useage is for variable requests to be the 
-          # same depth layer.  But since theta, so and friends are available at 
-          # other depths they may arrive with an added depth dimension of 1
-          if (length(s) > 1){
-            ix = grepl("depth", names(s), fixed = TRUE)
-            if (any(ix)){
-              s[[ix]] = dplyr::st_slice(x[[ix]], "depth", 1)
-              s = c(ss[[1]], s[[2]], along = NA_integer_)
-            }
-          } else {
-            s = s[[1]] # only one element, so it becomes our stars object
-          }
-                
-          # here we add an attribute to alert the user to the time and depth of 
-          # values associated with this array.  They may be dropped (or may not have 
-          # existed in the first place)
-          d = stars::st_dimensions(s)
           andreas = list(dataset_id = tbl$dataset_id[1],
-                         time = NULL, 
-                         depth = NULL)
-          andreas$depth = if ("depth" %in% names(d)){
-            stars::st_get_dimension_values(s, "depth")
-          } else {
-            depth
-          }
-          andreas$time = if ("time" %in% names(d)){
-            stars::st_get_dimension_values(s, "time")
-          } else {
-            unique(time)
+                         time = unique(time), 
+                         depth = depth)
+          if (form == 'stars'){
+            d = stars::st_dimensions(s)
+            andreas$depth = if ("depth" %in% names(d)){
+              stars::st_get_dimension_values(s, "depth")
+            } 
+            andreas$time = if ("time" %in% names(d)){
+              stars::st_get_dimension_values(s, "time")
+            }
+          } 
+          
+          if (form == 'stars') {
+            s = s |>
+              rlang::set_names(dplyr::pull(tbl, dplyr::all_of("name")))
+            if (drop_depth && ("depth" %in% names(d))){
+              s = dplyr::slice(s, "depth", 1, drop = TRUE)
+            } 
           }
           
-          s = s |>
-            rlang::set_names(dplyr::pull(tbl, dplyr::all_of("name")))
-          if (drop_depth && ("depth" %in% names(d))){
-            s = dplyr::slice(s, "depth", 1, drop = TRUE)
-          } 
           # slicing drops (user) attributes, so we add these after
           # slicing
           attr(s, "andreas") <- andreas
-          s
         }
+        return(s)
       }, .keep = TRUE, drop_depth = drop_depth) 
 
   r
