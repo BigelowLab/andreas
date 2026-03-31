@@ -4,7 +4,12 @@
 \alias{merge_database}
 \title{Merge compatible databases for one region}
 \usage{
-merge_database(path = copernicus_path("chfc"), rm_dups = TRUE, ...)
+merge_database(
+  path = copernicus_path("chfc"),
+  rm_dups = TRUE,
+  pattern = NULL,
+  ...
+)
 }
 \arguments{
 \item{path}{chr the path to the regional data repository}
@@ -12,6 +17,10 @@ merge_database(path = copernicus_path("chfc"), rm_dups = TRUE, ...)
 \item{rm_dups}{logical, if TRUE remove duplicates preferentially
 retaining MULTIYEAR over ANALAYSISFORECAST products and choosing
 "my" over "myint" datasets on a given date for each name-depth group}
+
+\item{pattern}{chr, a regular expression to match databasii.  If NULL
+then all for a region are used, otherwise match this pattern.  For example,
+anything with "BGC" might be  "^.*BGC"}
 
 \item{...}{other arguments for \link{read_database}}
 }

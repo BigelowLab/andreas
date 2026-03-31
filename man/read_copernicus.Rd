@@ -12,6 +12,7 @@ read_copernicus(
   bb = NULL,
   ext = ".tif",
   name_by = c("variable", "name")[1],
+  tolerance = 1e-06,
   ...
 )
 
@@ -31,6 +32,8 @@ ncdf fils that might have depth}
 
 \item{name_by}{chr, one of "variable" or "name"  Individual variables
 are named by either the database "variable" or "name" attribute.}
+
+\item{tolerance}{num see \code{\link[stars:c.stars]{stars::c.stars()}}}
 
 \item{...}{other arguments for \code{stars::st_crop}}
 }

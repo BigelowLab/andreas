@@ -62,6 +62,7 @@ read_copernicus_nc = function(db, path,
 #'  ncdf fils that might have depth
 #' @param name_by chr, one of "variable" or "name"  Individual variables 
 #'   are named by either the database "variable" or "name" attribute.
+#' @param tolerance num see [stars::c.stars()]
 #' @param ... other arguments for `stars::st_crop`
 #' @return stars object
 read_copernicus = function(db, path, 
@@ -69,6 +70,7 @@ read_copernicus = function(db, path,
                            bb = NULL, 
                            ext = ".tif",
                            name_by = c("variable", "name")[1],
+                           tolerance = 1e-6,
                            ...){
   db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
                            format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
@@ -86,10 +88,10 @@ read_copernicus = function(db, path,
                 suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i]), name_by = name_by) |>
                   dplyr::slice("time",1)
               })
-          do.call(c, append(ss, list(along = list(time = grp$datetime)))) |>
+          do.call(c, append(ss, list(along = list(time = grp$datetime), tolerance = tolerance))) |>
             rlang::set_names(grp |> dplyr::pull(dplyr::all_of(name_by[1])) | getElement(1))
         }, .keep = TRUE)
-    r = do.call(c, append(x, list(along = NA_integer_)))
+    r = do.call(c, append(x, list(along = NA_integer_, tolerance = tolerance)))
   } else {
     db$file = compose_filename(db, path, ext = ext[1])
     # read each variable
@@ -107,7 +109,7 @@ read_copernicus = function(db, path,
               rlang::set_names(tbl[[name_by[1]]][1])
           }
         }, .keep = TRUE) |>
-      copernicus::bind_stars()
+      copernicus::bind_stars(tolerance = tolerance)
   }
 
   r = r |>

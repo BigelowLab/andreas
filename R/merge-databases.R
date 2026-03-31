@@ -21,6 +21,9 @@
 #' 
 #' @export
 #' @param path chr the path to the regional data repository
+#' @param pattern chr, a regular expression to match databasii.  If NULL
+#'   then all for a region are used, otherwise match this pattern.  For example,
+#'   anything with "BGC" might be  "^.*BGC"
 #' @param ... other arguments for [read_database]
 #' @param rm_dups logical, if TRUE remove duplicates preferentially 
 #'   retaining MULTIYEAR over ANALAYSISFORECAST products and choosing
@@ -28,11 +31,19 @@
 #' @return a merged database
 merge_database = function(path = copernicus_path("chfc"), 
                           rm_dups = TRUE, 
+                          pattern = NULL,
                           ...){
   if (length(path) > 1) stop("please specify only one region")
   if (!dir.exists(path)) stop("region directory not found: ", path)
+  
+  filter_pattern = function(x, variable = "product_id", pattern = NULL){
+    if (is.null(pattern)) return(x)
+    dplyr::filter(x, grepl(pattern, .data[[variable]]))
+  }
+  
   db = list_databases(form = "table") |>
     dplyr::filter(region == basename(path)) |>
+    filter_pattern(pattern = pattern) |>
     dplyr::rowwise() |>
     dplyr::group_map(
       function(tbl, grp){
@@ -51,6 +62,6 @@ merge_database = function(path = copernicus_path("chfc"),
       dplyr::select(-dplyr::all_of("pref_order"))
   }
   class(db) <- c("merged", class(db))
-  db
+  dplyr::ungroup(db)
 }
  
