@@ -1,7 +1,7 @@
 Package: andreas
 Type: Package
 Title: Serves Center for Ocean Forecasting Copernicus needs
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: c(
     person("Tupper", "Ben", email = "btupper@bigelow.org", role = c("aut", "cre")),
     person("Johnson", "Omi", email = "ojohnson@bigelow.org", role = "ctb"))

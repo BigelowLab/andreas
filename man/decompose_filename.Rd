@@ -27,6 +27,7 @@ table (tibble) database
 \item{variable chr, the variable name}
 \item{treatment chr, treatment such as raw, mean, sum, etc}
 \item{name chr, the short common name}
+\item{.name chr, concatenation of \code{name_depth}}
 }
 }
 \description{

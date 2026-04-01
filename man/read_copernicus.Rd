@@ -11,8 +11,10 @@ read_copernicus(
   crs = 4326,
   bb = NULL,
   ext = ".tif",
-  name_by = c("variable", "name")[1],
+  name_by = c("variable", "name", ".name")[3],
+  group = name_by,
   tolerance = 1e-06,
+  datetime = c("date", "posixt")[1],
   ...
 )
 
@@ -35,10 +37,13 @@ are named by either the database "variable" or "name" attribute.}
 
 \item{tolerance}{num see \code{\link[stars:c.stars]{stars::c.stars()}}}
 
+\item{datetime}{chr, one of "date" (default) or "posix" to control class of
+the date/time dimension}
+
 \item{...}{other arguments for \code{stars::st_crop}}
 }
 \value{
-stars object
+stars object or NULL
 }
 \description{
 By default the function tries to return an object with (variables of x, y, time)

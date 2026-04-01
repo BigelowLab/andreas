@@ -63,23 +63,46 @@ read_copernicus_nc = function(db, path,
 #' @param name_by chr, one of "variable" or "name"  Individual variables 
 #'   are named by either the database "variable" or "name" attribute.
 #' @param tolerance num see [stars::c.stars()]
+#' @param datetime chr, one of "date" (default) or "posix" to control class of 
+#'    the date/time dimension
 #' @param ... other arguments for `stars::st_crop`
-#' @return stars object
+#' @return stars object or NULL
 read_copernicus = function(db, path, 
                            crs = 4326, 
                            bb = NULL, 
                            ext = ".tif",
-                           name_by = c("variable", "name")[1],
+                           name_by = c("variable", "name", ".name")[3],
+                           group = name_by,
                            tolerance = 1e-6,
+                           datetime = c("date", "posixt")[1],
                            ...){
-  db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
+  
+  if (FALSE){
+    crs = 4326
+    bb = NULL
+    ext = ".tif"
+    name_by = c("variable", "name")[1]
+    tolerance = 1e-6
+    datetime = c("date", "posixt")[1]
+  }
+  
+  db$datetime = if (datetime == "posixt"){
+      as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
                            format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
+    } else {
+      db$date
+    }
+  
+  v = dplyr::count(db, .data[[group]])
+  if (!all(diff(v$n) == 0)){
+    warning("groups must have the same number of elements - returning NULL")
+    return(NULL)
+  }
+  
+  
   
   if (ext[1] == ".nc"){
-    #db$file = compose_filename(db, path, ext = ext[1])
-    db$datetime = as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
-                             format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
-    x = dplyr::group_by(db, variable) |>
+    x = dplyr::group_by(db, .data[[group]]) |>
       dplyr::group_map(
         function(grp, key){
           f = andreas::compose_filename(grp, path, ext = ".nc")
@@ -88,7 +111,7 @@ read_copernicus = function(db, path,
                 suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i]), name_by = name_by) |>
                   dplyr::slice("time",1)
               })
-          do.call(c, append(ss, list(along = list(time = grp$datetime), tolerance = tolerance))) |>
+          do.call(c, append(ss, list(along = list(time = grp$datetime, tolerance = tolerance)))) |>
             rlang::set_names(grp |> dplyr::pull(dplyr::all_of(name_by[1])) | getElement(1))
         }, .keep = TRUE)
     r = do.call(c, append(x, list(along = NA_integer_, tolerance = tolerance)))
@@ -102,7 +125,7 @@ read_copernicus = function(db, path,
       dplyr::group_map(
         function(tbl, key){
           if (nrow(tbl) > 1 ){
-            s = stars::read_stars(tbl$file, along = list(time = tbl$datetime)) |>
+            s = stars::read_stars(tbl$file, along = list(time = tbl$datetime), tolerance = tolerance) |>
               rlang::set_names(tbl[[name_by[1]]][1])
           } else {
             s = stars::read_stars(tbl$file) |>
