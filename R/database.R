@@ -243,6 +243,39 @@ select_database = function(x, cols = database_variables()){
 
 
 
+#' Tabulate missing data by '.name' and 'period'
+#' 
+#' @export
+#' @param x a database
+#' @return data frame of metadata (id, .name, period), startdate (Date), enddate(Date) and missingdates (list)
+tabulate_missing = function(
+  x = read_database(copernicus_path("chfc"), multiple = TRUE)){
+  
+  has_product = "product" %in% colnames(x)
+  x = if (has_product){
+      dplyr::group_by(x, .data$product, .data$id, .data$.name, .data$period)
+    } else {
+      dplyr::group_by(x, .data$id, .data$.name, .data$period)
+    }
+  
+  y = x |>
+    dplyr::group_map(
+      function(grp, key){
+        
+        r = range(grp$date)
+        s = seq(from = r[1], to = r[2], by = "day")
+        miss = !(s %in% grp$date)
+        key = key |>
+          dplyr::mutate(start = r[1],
+                        end = r[2],
+                        ndays = length(s),
+                        nmiss = sum(miss),
+                        missing = list(s[miss]))
+      }, .keep = FALSE) |>
+    dplyr::bind_rows()
+
+}
+
 #' Given a database (days, 8DR or month), determine the times
 #' that are missing between the first and last records
 #' 

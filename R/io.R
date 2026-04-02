@@ -60,8 +60,10 @@ read_copernicus_nc = function(db, path,
 #' @param bb NULL or and object used for cropping
 #' @param ext chr the file extension, tyocially '.tif' but set to '.nc' for 
 #'  ncdf fils that might have depth
-#' @param name_by chr, one of "variable" or "name"  Individual variables 
-#'   are named by either the database "variable" or "name" attribute.
+#' @param name chr, one of "variable", "name" or .name  Individual variables 
+#'   are named by either the database "variable", "name" or ".name"attribute.
+#' @param group chr, the grouping variable (default is ".name") for reading
+#'   multiple attributes
 #' @param tolerance num see [stars::c.stars()]
 #' @param datetime chr, one of "date" (default) or "posix" to control class of 
 #'    the date/time dimension
@@ -71,48 +73,49 @@ read_copernicus = function(db, path,
                            crs = 4326, 
                            bb = NULL, 
                            ext = ".tif",
-                           name_by = c("variable", "name", ".name")[3],
-                           group = name_by,
+                           name = c("variable", "name", ".name")[3],
+                           group = name,
                            tolerance = 1e-6,
-                           datetime = c("date", "posixt")[1],
+                           datetime = c("date", "posix")[1],
                            ...){
   
   if (FALSE){
     crs = 4326
     bb = NULL
     ext = ".tif"
-    name_by = c("variable", "name")[1]
+    name = c("variable", "name", ".name")[3]
+    group = name
     tolerance = 1e-6
     datetime = c("date", "posixt")[1]
   }
   
-  db$datetime = if (datetime == "posixt"){
-      as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
-                           format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
-    } else {
-      db$date
-    }
   
-  v = dplyr::count(db, .data[[group]])
+  
+  v = dplyr::count(db, .data[[group[1]]])
   if (!all(diff(v$n) == 0)){
     warning("groups must have the same number of elements - returning NULL")
     return(NULL)
   }
   
-  
+  db$datetime = if (tolower(datetime) != "date"){
+    as.POSIXct(paste(format(db$date, '%Y-%m-%d'), db$time), 
+               format = "%Y-%m-%d %H%M%S", tz = 'UTC')  
+  } else {
+    db$date
+  }
   
   if (ext[1] == ".nc"){
-    x = dplyr::group_by(db, .data[[group]]) |>
+    x = dplyr::group_by(db, .data[[group[1]]]) |>
       dplyr::group_map(
         function(grp, key){
           f = andreas::compose_filename(grp, path, ext = ".nc")
           ss = lapply(seq_along(f),
             function(i){
-                suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i]), name_by = name_by) |>
+                suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i]), name_by = name) |>
                   dplyr::slice("time",1)
               })
           do.call(c, append(ss, list(along = list(time = grp$datetime, tolerance = tolerance)))) |>
-            rlang::set_names(grp |> dplyr::pull(dplyr::all_of(name_by[1])) | getElement(1))
+            rlang::set_names(grp |> dplyr::pull(dplyr::all_of(name[1])) | getElement(1))
         }, .keep = TRUE)
     r = do.call(c, append(x, list(along = NA_integer_, tolerance = tolerance)))
   } else {
@@ -121,15 +124,16 @@ read_copernicus = function(db, path,
     # check that each variable has the same time-dim
     # if ok then bind, otherwise error
     r = db |>
-      dplyr::group_by(.data$variable) |>
+      dplyr::group_by(.data[[group[1]]]) |>
       dplyr::group_map(
         function(tbl, key){
           if (nrow(tbl) > 1 ){
-            s = stars::read_stars(tbl$file, along = list(time = tbl$datetime), tolerance = tolerance) |>
-              rlang::set_names(tbl[[name_by[1]]][1])
+            s = stars::read_stars(tbl$file, along = list(time = tbl$datetime), 
+                                  tolerance = tolerance) |>
+              rlang::set_names(tbl[[name[1]]][1])
           } else {
             s = stars::read_stars(tbl$file) |>
-              rlang::set_names(tbl[[name_by[1]]][1])
+              rlang::set_names(tbl[[name[1]]][1])
           }
         }, .keep = TRUE) |>
       copernicus::bind_stars(tolerance = tolerance)

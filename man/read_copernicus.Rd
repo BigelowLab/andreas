@@ -11,10 +11,10 @@ read_copernicus(
   crs = 4326,
   bb = NULL,
   ext = ".tif",
-  name_by = c("variable", "name", ".name")[3],
-  group = name_by,
+  name = c("variable", "name", ".name")[3],
+  group = name,
   tolerance = 1e-06,
-  datetime = c("date", "posixt")[1],
+  datetime = c("date", "posix")[1],
   ...
 )
 
@@ -32,8 +32,11 @@ read_andreas(db, path, ...)
 \item{ext}{chr the file extension, tyocially '.tif' but set to '.nc' for
 ncdf fils that might have depth}
 
-\item{name_by}{chr, one of "variable" or "name"  Individual variables
-are named by either the database "variable" or "name" attribute.}
+\item{name}{chr, one of "variable", "name" or .name  Individual variables
+are named by either the database "variable", "name" or ".name"attribute.}
+
+\item{group}{chr, the grouping variable (default is ".name") for reading
+multiple attributes}
 
 \item{tolerance}{num see \code{\link[stars:c.stars]{stars::c.stars()}}}
 
