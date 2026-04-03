@@ -10,7 +10,8 @@ tabulate_missing(x = read_database(copernicus_path("chfc"), multiple = TRUE))
 \item{x}{a database}
 }
 \value{
-data frame of metadata (id, .name, period), startdate (Date), enddate(Date) and missingdates (list)
+data frame of metadata (id(s), .name, period), start (Date), end(Date),
+ndays (num), nmiss (num) and dates (list)
 }
 \description{
 Tabulate missing data by '.name' and 'period'

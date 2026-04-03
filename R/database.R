@@ -247,7 +247,8 @@ select_database = function(x, cols = database_variables()){
 #' 
 #' @export
 #' @param x a database
-#' @return data frame of metadata (id, .name, period), startdate (Date), enddate(Date) and missingdates (list)
+#' @return data frame of metadata (id(s), .name, period), start (Date), end(Date), 
+#'   ndays (num), nmiss (num) and dates (list)
 tabulate_missing = function(
   x = read_database(copernicus_path("chfc"), multiple = TRUE)){
   
@@ -266,11 +267,13 @@ tabulate_missing = function(
         s = seq(from = r[1], to = r[2], by = "day")
         miss = !(s %in% grp$date)
         key = key |>
-          dplyr::mutate(start = r[1],
+          dplyr::mutate(variable = grp$variable[1],
+                        depth = grp$depth[1],
+                        start = r[1],
                         end = r[2],
                         ndays = length(s),
                         nmiss = sum(miss),
-                        missing = list(s[miss]))
+                        dates = list(s[miss]))
       }, .keep = FALSE) |>
     dplyr::bind_rows()
 
