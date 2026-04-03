@@ -5,7 +5,8 @@
 \title{Read static variables for a regional dataset, possibly subsetting with a bounding box}
 \usage{
 read_static(
-  name = c("deptho", "mask"),
+  name = c("aspect", "deptho_lev", "deptho", "flowdir", "lut", "mask", "roughness",
+    "slope", "TPI", "TRI")[c(3, 6)],
   path = copernicus::copernicus_path("gom", "GLOBAL_ANALYSISFORECAST_PHY_001_024"),
   bb = NULL
 )
