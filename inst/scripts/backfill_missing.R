@@ -72,13 +72,16 @@ main = function(DB, path, cfg, LUT){
 }
 
 
-Args = argparser::arg_parser("Backfill copernicus data",
-                             name = "backfill_days.R", 
+Args = argparser::arg_parser("Backfill copernicus missing data",
+                             name = "backfill_missing.R", 
                              hide.opts = TRUE) |>
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "chfc-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
+                                         "world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
+  add_argument("--period",
+               help = 'used to filter the type of dataset to backfill, "any" to skip filtering',
+               default = "day") |>
   parse_args()
 
 cfg = yaml::read_yaml(Args$config)
@@ -88,6 +91,9 @@ charlier::info("backfill_missing for %s/%s", cfg$reg,cfg$product)
 
 path = andreas::copernicus_path(cfg$reg, cfg$product)
 DB = andreas::read_database(path)
-LUT = andreas::read_product_lut(cfg$product)
 
-newdb = main(DB, path, cfg, LUT )
+LUT = andreas::read_product_lut(cfg$product)
+db = filter(DB, .data$period == Args$period)
+newdb = main(db, path, cfg, LUT) |>
+  append_database(path)
+

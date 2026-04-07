@@ -247,23 +247,20 @@ select_database = function(x, cols = database_variables()){
 #' 
 #' @export
 #' @param x a database
+#' @param last_date Date or NULL, if Date class then calculate missing before this date,
+#'   but if NULL then calculate missing before the last available date
 #' @return data frame of metadata (id(s), .name, period), start (Date), end(Date), 
 #'   ndays (num), nmiss (num) and dates (list)
 tabulate_missing = function(
-  x = read_database(copernicus_path("chfc"), multiple = TRUE)){
-  
-  has_product = "product" %in% colnames(x)
-  x = if (has_product){
-      dplyr::group_by(x, .data$product, .data$id, .data$.name, .data$period)
-    } else {
-      dplyr::group_by(x, .data$id, .data$.name, .data$period)
-    }
+  x = read_database(copernicus_path("chfc"), multiple = TRUE),
+  last_date = NULL){
   
   y = x |>
+    dplyr::group_by(dplyr::across(dplyr::any_of(c("product", "id", ".name", "period")))) |>
     dplyr::group_map(
       function(grp, key){
-        
         r = range(grp$date)
+        if (inherits(last_date, "Date")) r[2] = last_date[1]
         s = seq(from = r[1], to = r[2], by = "day")
         miss = !(s %in% grp$date)
         key = key |>

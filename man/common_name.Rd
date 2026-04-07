@@ -6,7 +6,7 @@
 \usage{
 common_name(
   x = c("bottomT", "pbo", "sob", "tob", "mlotst", "so", "thetao", "uo", "vo", "wo",
-    "zos"),
+    "zos", "siconc", "sithick", "usi", "vsi"),
   lut = variable_lut()
 )
 }

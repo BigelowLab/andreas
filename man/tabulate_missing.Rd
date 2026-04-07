@@ -4,10 +4,16 @@
 \alias{tabulate_missing}
 \title{Tabulate missing data by '.name' and 'period'}
 \usage{
-tabulate_missing(x = read_database(copernicus_path("chfc"), multiple = TRUE))
+tabulate_missing(
+  x = read_database(copernicus_path("chfc"), multiple = TRUE),
+  last_date = NULL
+)
 }
 \arguments{
 \item{x}{a database}
+
+\item{last_date}{Date or NULL, if Date class then calculate missing before this date,
+but if NULL then calculate missing before the last available date}
 }
 \value{
 data frame of metadata (id(s), .name, period), start (Date), end(Date),

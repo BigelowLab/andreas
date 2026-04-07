@@ -60,7 +60,11 @@ variable_lut = function(){
     "po4", "po4", "phosphate", "mmol m-3",
     "si", "si", "silcate", "mmol m-3",
     "zooc", "zooc", "total zooplankton as carbon", "mmol m-3",
-    "phyc", "phyc", "total phytoplankton as carbon", "mmol m-3")
+    "phyc", "phyc", "total phytoplankton as carbon", "mmol m-3",
+    "siconc", "siconc", "sea ice fraction", "",
+    "sithick", "sithick", "sea ice thickness", "m",
+    "usi", "usi", "eastward sea ice velocity", "m/s",
+    "vsi", "vsi", "northward sea ice velocity", "m/s",)
 }
 
 #' Retrieve the common name of a given variable name
@@ -70,7 +74,8 @@ variable_lut = function(){
 #' @param lut table of look up values
 #' @return charcater vector of short common names
 common_name = function(x = c("bottomT", "pbo", "sob", "tob", "mlotst", 
-                             "so", "thetao", "uo", "vo", "wo", "zos"),
+                             "so", "thetao", "uo", "vo", "wo", "zos",
+                             "siconc", "sithick", "usi", "vsi"),
                        lut = variable_lut()){
   
   common = lut$name |>
