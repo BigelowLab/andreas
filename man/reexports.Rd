@@ -6,6 +6,8 @@
 \alias{copernicus_path}
 \alias{make_path}
 \alias{set_point}
+\alias{bind_attrs}
+\alias{bind_stars}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -13,6 +15,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{copernicus}{\code{\link[copernicus]{copernicus_path}}, \code{\link[copernicus]{make_path}}, \code{\link[copernicus]{set_point}}}
+  \item{copernicus}{\code{\link[copernicus]{bind_attrs}}, \code{\link[copernicus]{bind_stars}}, \code{\link[copernicus]{copernicus_path}}, \code{\link[copernicus]{make_path}}, \code{\link[copernicus]{set_point}}}
 }}
 
