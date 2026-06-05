@@ -126,7 +126,7 @@ Args = argparser::arg_parser("Backfill copernicus data",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "world-GLOBAL_MULTIYEAR_BGC_001_029.yaml")) |>
+                                         "world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
   parse_args()
 
 

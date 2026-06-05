@@ -51,7 +51,9 @@ read_copernicus_nc = function(db, path,
 #' 
 #' By default the function tries to return an object with (variables of x, y, time) 
 #' dimensions.  If multiple times are provided, then each var must be equally
-#' represented.
+#' represented.  The order of the variables (attributes) is not defined by
+#' the order in the input `db`, so don't depend upon that. You can rearrange the 
+#' order to suite your needs using [dplyr::select()] or `x[,new_order]`.
 #' 
 #' @export
 #' @param db tibble, database of selected records
