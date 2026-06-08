@@ -22,19 +22,25 @@ suppressPackageStartupMessages({
 
 
 
-backfill_dataset = function(tbl, key, path = ".", DB = NULL, cfg = NULL, verbose = interactive()){
+backfill_dataset = function(tbl, key, 
+                            path = ".", 
+                            DB = NULL, 
+                            cfg = NULL, 
+                            verbose = interactive()){
   
-  if (verbose) cat("backfill_dataset: ", tbl$dataset_id[1], "at", tbl$depth[1], "\n")
+  charlier::info("backfill_dataset: %s at %s", tbl$dataset_id[1], tbl$depth[1])
   # these are what the catalog offers for this dataset
   # we assume for a given dataset all start/end dates are shared in
   # common
   available_dates = seq(from = min(tbl$start_time),
                         to = max(tbl$end_time),
-                        by = copernicus::dataset_period(tbl$dataset_id[1]))
+                        by = copernicus::dataset_period(tbl$dataset_id[1])) |>
+    as.Date()
   # here we compute the missing dates
   missing_dates = if(nrow(DB) > 0) {
       have = DB |> 
-        dplyr::filter(.data$id == tbl$dataset_id[1]) |>
+        dplyr::filter(.data$id == tbl$dataset_id[1],
+                      .data$depth == tbl$depth[1]) |>
         dplyr::arrange(date) |>
         dplyr::pull(date)
       available_dates[!(available_dates %in% have)]
@@ -43,52 +49,58 @@ backfill_dataset = function(tbl, key, path = ".", DB = NULL, cfg = NULL, verbose
     }
   
   db = tbl |>
-    #dplyr::group_by(depth) |>
     dplyr::group_map(
       function(tab, quay){
         lapply(seq_along(missing_dates),
           function(idate){
-            if (verbose){
-              cat("  backfill_dataset: ", format(missing_dates[idate]), "\n")
-            }
+            charlier::info("  backfill_dataset: %s for %s at %s", 
+                           format(missing_dates[idate]),
+                           paste(tab$name, collapse = ", "),
+                           tab$depth)
             time = c(missing_dates[idate], missing_dates[idate])
             depth = c(tab$mindepth[1], tab$maxdepth[2])
             x = andreas::fetch_andreas(tab,
                                        bb = cfg$bb,
                                        time = time)[[1]]
-            dimx = stars::st_dimensions(x)
-            andreas = attr(x, "andreas")
-            names(x) <- tab$name
-            period = copernicus::dataset_period(tab$dataset_id[1])
-            treatment = "raw"
-            d = stars::st_dimensions(x)
-            time = andreas$time |> format("%Y-%m-%dT000000")
-            db = tab |> 
-              rowwise()|>
-              group_map(
-                function(p, k){
-                  nm = p$short_name
-                  fname = sprintf("%s__%s_%s_%s_%s_%s.tif", 
-                                  p$dataset_id, 
-                                  time, 
-                                  p$depth, 
-                                  period, 
-                                  nm, 
-                                  treatment)
-                  db = decompose_filename(fname)
-                  ofiles = compose_filename(db, path)
-                  
-                  for (i in seq_along(fname)){
-                    ok = make_path(dirname(ofiles[i]))
-                    s = if ("time" %in% names(dimx)){
-                      stars::write_stars(dplyr::slice(x[nm], "time", i), ofiles[i]) 
-                    } else {
-                      stars::write_stars(x[nm], ofiles[i]) 
-                    }
-                  }
+            if (!is.null(x)){
+              dimx = stars::st_dimensions(x)
+              andreas = attr(x, "andreas")
+              names(x) <- tab$name
+              period = copernicus::dataset_period(tab$dataset_id[1])
+              treatment = "raw"
+              d = stars::st_dimensions(x)
+              time = andreas$time |> format("%Y-%m-%dT000000")
+              db = tab |> 
+               rowwise()|>
+               group_map(
+                 function(p, k){
+                   nm = p$short_name
+                   fname = sprintf("%s__%s_%s_%s_%s_%s.tif", 
+                                   p$dataset_id, 
+                                   time, 
+                                   p$depth, 
+                                   period, 
+                                   nm, 
+                                   treatment)
+                   db = decompose_filename(fname)
+                   ofiles = compose_filename(db, path)
+                   
+                   for (i in seq_along(fname)){
+                     ok = make_path(dirname(ofiles[i]))
+                     s = if ("time" %in% names(dimx)){
+                       stars::write_stars(dplyr::slice(x[nm], "time", i), ofiles[i]) 
+                     } else {
+                       stars::write_stars(x[nm], ofiles[i]) 
+                     }
+                   } 
                   db
                 } ) |>
               dplyr::bind_rows()
+            } else {
+              # x is null
+              db = NULL
+            }
+            db
           }) |>
           dplyr::bind_rows()
       }, .keep = TRUE) |>
@@ -126,7 +138,7 @@ Args = argparser::arg_parser("Backfill copernicus data",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
+                                         "world-GLOBAL_MULTIYEAR_BGC_001_029.yaml")) |>
   parse_args()
 
 
