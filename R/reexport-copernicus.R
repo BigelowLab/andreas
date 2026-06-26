@@ -17,3 +17,7 @@ copernicus::bind_attrs
 #' @importFrom copernicus bind_stars
 #' @export
 copernicus::bind_stars
+
+#' @importFrom copernicus dataset_period
+#' @export
+copernicus::dataset_period

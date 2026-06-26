@@ -138,7 +138,9 @@ main = function(cfg = NULL,
                 dates = c(as.Date("1993-01-01"), Sys.Date() + 3)){
  
   P = andreas::read_product_lut(cfg$product) |>
-    dplyr::filter(fetch == "yes") |>
+    dplyr::mutate(period = dataset_period(.data$dataset_id)) |>
+    dplyr::filter(fetch == "yes", 
+                  period == "day") |>
     #dplyr::mutate(n_depth = ifelse(is.na(.data$n_depth), 1, .data$n_depth)) |>
     #dplyr::group_by(dataset_id, depth, n_depth) |>
     dplyr::mutate(.name = paste(.data$short_name, .data$depth, sep = "_"))
