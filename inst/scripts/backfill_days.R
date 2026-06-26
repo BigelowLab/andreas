@@ -1,4 +1,4 @@
-# usage: backfill_days.R [--] [--help] [--config CONFIG]
+# usage: backfill_days.R [--] [--help] [--config CONFIG] [--start START] [--end END]
 # 
 # Backfill copernicus data
 # 
@@ -7,8 +7,12 @@
 # 
 # optional arguments:
 #   -c, --config  configuration file [default:
-#      /mnt/s1/projects/ecocast/coredata/copernicus/config/fetch-day-GLOBAL_MULTIYEAR_PHY_001_030.yaml]
+#       /mnt/s1/projects/ecocast/coredata/copernicus/config/world-GLOBAL_MULTIYEAR_PHY_001_030.yaml]
+#   -s, --start   start date, default is 1993-01-01 [default: 1993-01-01]
+#   -e, --end     end date, default is today + 3 [default: 2026-06-24]
 
+
+  
 suppressPackageStartupMessages({
   library(copernicus)
   library(andreas)
@@ -22,25 +26,26 @@ suppressPackageStartupMessages({
 
 
 
-backfill_dataset = function(tbl, key, 
+backfill_dataset = function(p, key, 
                             path = ".", 
                             DB = NULL, 
                             cfg = NULL, 
                             verbose = interactive()){
   
-  charlier::info("backfill_dataset: %s at %s", tbl$dataset_id[1], tbl$depth[1])
+  charlier::info("backfill_dataset: %s at %s", p$dataset_id[1], p$.name[1])
   # these are what the catalog offers for this dataset
   # we assume for a given dataset all start/end dates are shared in
   # common
-  available_dates = seq(from = min(tbl$start_time),
-                        to = max(tbl$end_time),
-                        by = copernicus::dataset_period(tbl$dataset_id[1])) |>
+  available_dates = seq(from = min(p$start_time),
+                        to = max(p$end_time),
+                        by = copernicus::dataset_period(p$dataset_id[1],
+                                                        for_sequence = TRUE)) |>
     as.Date()
   # here we compute the missing dates
   missing_dates = if(nrow(DB) > 0) {
       have = DB |> 
-        dplyr::filter(.data$id == tbl$dataset_id[1],
-                      .data$depth == tbl$depth[1]) |>
+        dplyr::filter(.data$id == p$dataset_id[1],
+                      .data$.name == p$.name[1]) |>
         dplyr::arrange(date) |>
         dplyr::pull(date)
       available_dates[!(available_dates %in% have)]
@@ -48,7 +53,15 @@ backfill_dataset = function(tbl, key,
       available_dates
     }
   
-  db = tbl |>
+  n_missing = length(missing_dates)
+  if (n_missing == 0){
+    charlier::info("  no missing dates - returning")
+    return(NULL)
+  } else {
+    charlier::info("  missing up to %i days", n_missing)
+  }
+  
+  db = p |>
     dplyr::group_map(
       function(tab, quay){
         lapply(seq_along(missing_dates),
@@ -61,7 +74,8 @@ backfill_dataset = function(tbl, key,
             depth = c(tab$mindepth[1], tab$maxdepth[2])
             x = andreas::fetch_andreas(tab,
                                        bb = cfg$bb,
-                                       time = time)[[1]]
+                                       time = time,
+                                       form = "stars")[[1]]
             if (!is.null(x)){
               dimx = stars::st_dimensions(x)
               andreas = attr(x, "andreas")
@@ -109,21 +123,26 @@ backfill_dataset = function(tbl, key,
 }
 
 
-main = function(cfg = NULL){
+main = function(cfg = NULL,
+                dates = c(as.Date("1993-01-01"), Sys.Date() + 3)){
  
   P = andreas::read_product_lut(cfg$product) |>
     dplyr::filter(fetch == "yes") |>
-    dplyr::group_by(dataset_id, depth)
+    #dplyr::mutate(n_depth = ifelse(is.na(.data$n_depth), 1, .data$n_depth)) |>
+    #dplyr::group_by(dataset_id, depth, n_depth) |>
+    dplyr::mutate(.name = paste(.data$short_name, .data$depth, sep = "_"))
   
   path = copernicus::copernicus_path(cfg$region, cfg$product) |>
     copernicus::make_path()
   
-  DB = andreas::read_database(path)
+  DB = andreas::read_database(path) |>
+    dplyr::filter(dplyr::between(.data$date, dates[1], dates[2]))
   
   # for each dataset_id
   # compare the stored dates with those served
   # retrieve just the missing ones
   newdb = P |>
+    dplyr::rowwise() |>
     dplyr::group_map(backfill_dataset, path = path, DB = DB, cfg = cfg, .keep = TRUE) |>
     dplyr::bind_rows() |>
     andreas::append_database(path)
@@ -139,6 +158,12 @@ Args = argparser::arg_parser("Backfill copernicus data",
                help = 'configuration file',
                default = copernicus_path("config", 
                                          "world-GLOBAL_MULTIYEAR_BGC_001_029.yaml")) |>
+  add_argument("--start",
+               help = "start date, default is 1993-01-01",
+               default = "1993-01-01") |>
+  add_argument("--end",
+               help = "end date, default is today + 3",
+               default = format(Sys.Date() + 3, "%Y-%m-%d")) |>
   parse_args()
 
 
@@ -146,15 +171,14 @@ cfg = yaml::read_yaml(Args$config)
 cfg$bb = cofbb::get_bb(cfg$region)
 charlier::start_logger(copernicus_path(cfg$reg, cfg$product, "log"))
 charlier::info("backfill_days for %s", cfg$product)
-
+START_DATE = as.Date(Args$start, format = "%Y-%m-%d")
+END_DATE = as.Date(Args$end, format = "%Y-%m-%d")
 MAX_MISSED_COUNT = 3
-
+dates = c(START_DATE, END_DATE)
 if (!interactive()){
-  ok = main(cfg)
+  ok = main(cfg, dates = dates)
   charlier::info("backfill_days: done")
   quit(save = "no", status = ok)
-} else {
-  date = as.Date(Args$date)
-}
+} 
 
 

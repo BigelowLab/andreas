@@ -146,7 +146,7 @@ read_copernicus = function(db, path,
   
   if (!is.null(bb)) {
     orig = sf::sf_use_s2(FALSE)  # in case the r bb extends beyond a pole
-    r = stars::st_crop(r, bb, ...)
+    r = sf::st_crop(r, bb, ...)
     dummy = sf::sf_use_s2(orig)
   }
   r
