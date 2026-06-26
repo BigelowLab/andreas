@@ -12,6 +12,11 @@
 #   -e, --end     end date, default is today + 3 [default: 2026-06-24]
 
 
+# The 4 configs we should run on are in /mnt/s1/projects/ecocast/coredata/copernicus/config/
+# world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml
+# world-GLOBAL_MULTIYEAR_BGC_001_029.yaml
+# chfc-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml
+# chfc-GLOBAL_MULTIYEAR_PHY_001_030.yaml
   
 suppressPackageStartupMessages({
   library(copernicus)
@@ -25,12 +30,14 @@ suppressPackageStartupMessages({
 })
 
 
-
+# p a single row of the product lut with .name (name_depth) column added
+# path product path
+# DB the COMPLETE database which we filter internally
+# cfg config list
 backfill_dataset = function(p, key, 
                             path = ".", 
                             DB = NULL, 
-                            cfg = NULL, 
-                            verbose = interactive()){
+                            cfg = NULL){
   
   charlier::info("backfill_dataset: %s at %s", p$dataset_id[1], p$.name[1])
   # these are what the catalog offers for this dataset
@@ -53,6 +60,7 @@ backfill_dataset = function(p, key,
       available_dates
     }
   
+  # if there are no missing dates then there are no records to add, return NULL
   n_missing = length(missing_dates)
   if (n_missing == 0){
     charlier::info("  no missing dates - returning")
@@ -61,6 +69,9 @@ backfill_dataset = function(p, key,
     charlier::info("  missing up to %i days", n_missing)
   }
   
+  # TODO this is set up to download chunks of contiguous dates but it is implemented
+  # on a per-date iteration.  Someday implement an improvement to grab contiguous dates
+  # but for now this is fine.  It runs anywhere from 7s to 12s per day per variable per depth
   db = p |>
     dplyr::group_map(
       function(tab, quay){

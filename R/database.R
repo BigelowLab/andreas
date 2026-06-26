@@ -204,6 +204,13 @@ write_database <- function(x, path,
 #' @param filename character, the name of the database file
 #' @return a tibble with appended data
 append_database <- function(x, path, filename = "database"){
+  
+  if (is.null(x) || nrow(x) == 0) {
+    
+    r = read_database(path, filename = filename)
+    return(r)
+  }
+  
   x = select_database(x)
   if (!dir.exists(path[1])) stop("path not found:", path[1])
   origfilename <- file.path(path,filename[1])
@@ -238,6 +245,10 @@ database_variables = function(){
 #' @param cols chr, the column names to keep
 #' @return a database table
 select_database = function(x, cols = database_variables()){
+  if (is.null(x)){
+    stop("input has no data")
+  }
+  
   dplyr::select(x, dplyr::all_of(cols))
 }
 
