@@ -28,7 +28,7 @@ coerce_dates = function(mydates = Sys.Date() + c(0,9),
 }
 
 
-#' A wrapper around [copernicus::fetch_copernicus()] to fetch Copernicus data as
+#' A wrapper around `copernicus::fetch_copernicus()` to fetch Copernicus data as
 #' stars objects.
 #' 
 #' @export
@@ -45,7 +45,7 @@ coerce_dates = function(mydates = Sys.Date() + c(0,9),
 #'   If "filename" then no attempt is made to read the downloaded file and `cleanup` is ignored.
 #'   If "list" then read the file into a list of stars objects where variables are grouped
 #'   by dimensional dependence.
-#' @param ... other arguments passed to [copernicus::fetch_copernicus()]
+#' @param ... other arguments passed to `copernicus::fetch_copernicus()`
 #' @return a list of stars objects groups by dataset_id and depth.  Each element, 
 #' if not NULL, will have an "andreas" attribute that provides a list with 
 #' dataset_id, depth and time.  We use this because a degenerate dimension (just one 

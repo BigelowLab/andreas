@@ -17,11 +17,11 @@ list_luts = function(path = copernicus::copernicus_path("lut")){
 #' @param product_id chr, the product identifier.  The associated file must exist
 #' @param description table, the table produced by [nicolaus::read_catalog] for
 #'   the specified `product_id`
-#' @return a table with the following
+#' @return a table with at least the following
 #' * product_id
 #' * dataset_id
 #' * dataset_name
-#' * name chr short_name converted to camelCase (used for file View(xstorage)
+#' * name chr short_name converted to camelCase (used for file View(x))
 #' * short_name
 #' * standard_name
 #' * units 
@@ -31,6 +31,10 @@ list_luts = function(path = copernicus::copernicus_path("lut")){
 #' * maxdepth for `copernicusmarine` CLI request
 #' * start_time known data service availability
 #' * end_time known data service availability
+#' * time_step in seconds
+#' * min_depth minimum available depth
+#' * max_depth maximum available depth
+#' * n_depth number of available depth layers
 read_product_lut = function(region = "chfc",
                             product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
                             description = nicolaus::read_catalog()){
@@ -42,15 +46,18 @@ read_product_lut = function(region = "chfc",
     dplyr::mutate(name = snakecase::to_lower_camel_case(.data$short_name),
                   .before = dplyr::all_of("short_name"))
   
-  lut |>
-    dplyr::select(-dplyr::all_of(c("product_id", "title"))) |>
-    dplyr::full_join(description |>
-                       dplyr::select(-dplyr::all_of(c("time_step", "min_depth", "max_depth", "units",
-                                                      "standard_name"))) |>
-                       dplyr::filter(.data$dataset_id %in% lut$dataset_id & .data$short_name %in% lut$short_name), 
-                     by = c("dataset_id", "short_name")) |>
-    dplyr::relocate(dplyr::all_of("product_id"), .before = dplyr::all_of("dataset_id"))
   
+  #desc = description |>
+  #  dplyr::select(-dplyr::all_of(c("units","standard_name"))) |>
+  #  dplyr::filter(.data$dataset_id %in% lut$dataset_id & .data$short_name %in% lut$short_name)
+  #
+  #z = lut |>
+  #  dplyr::select(-dplyr::any_of(c("product_id", "title"))) |>
+  #  dplyr::left_join(desc, 
+  #                   by = c("dataset_id", "short_name")) |>
+  #  dplyr::relocate(dplyr::all_of("product_id"), .before = dplyr::all_of("dataset_id"))
+  #
+  lut
 }
 
 
@@ -63,7 +70,7 @@ read_product_lut = function(region = "chfc",
 #' lut will be overwritten.
 #' 
 #' @export
-#' @param x chr the name of the product
+#' @param product chr the name of the product
 #' @param region chr, the name of the region
 #' @param catalog table of products (unflattened)
 #' @param save_lut log, if TRUE save to CSV format in `inst/lut`
@@ -81,20 +88,20 @@ read_product_lut = function(region = "chfc",
 #' * fetch  "no"
 #' * mindepth 0
 #' * maxdepth 1
-create_lut <- function(x = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
+create_lut <- function(product = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
                        region = "nowhere",
                        catalog = nicolaus::read_catalog(),
                        save_lut = FALSE){
   
   lut = catalog |>
-    dplyr::filter(product_id == x[1]) |>
-    flatten_product() |>
+    dplyr::filter(product_id == product[1]) |>
+    #flatten_product() |>
     dplyr::mutate(depth = "sur", 
                   fetch = "no",
                   mindepth = 0,
                   maxdepth = 1)
   if (save_lut) readr::write_csv(lut, 
-                                 copernicus_path("lut", sprintf("%s-%s.csv",region,x)))
+                                 copernicus_path("lut", sprintf("%s-%s.csv",region,product)))
   lut
 }
 

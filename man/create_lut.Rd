@@ -5,14 +5,14 @@
 \title{Generate a LUT suitable for the package.}
 \usage{
 create_lut(
-  x = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
+  product = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
   region = "nowhere",
   catalog = nicolaus::read_catalog(),
   save_lut = FALSE
 )
 }
 \arguments{
-\item{x}{chr the name of the product}
+\item{product}{chr the name of the product}
 
 \item{region}{chr, the name of the region}
 

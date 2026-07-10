@@ -2,7 +2,7 @@
 % Please edit documentation in R/fetch.R
 \name{fetch_andreas}
 \alias{fetch_andreas}
-\title{A wrapper around \code{\link[copernicus:fetch_copernicus]{copernicus::fetch_copernicus()}} to fetch Copernicus data as
+\title{A wrapper around \code{copernicus::fetch_copernicus()} to fetch Copernicus data as
 stars objects.}
 \usage{
 fetch_andreas(
@@ -39,7 +39,7 @@ If "filename" then no attempt is made to read the downloaded file and \code{clea
 If "list" then read the file into a list of stars objects where variables are grouped
 by dimensional dependence.}
 
-\item{...}{other arguments passed to \code{\link[copernicus:fetch_copernicus]{copernicus::fetch_copernicus()}}}
+\item{...}{other arguments passed to \code{copernicus::fetch_copernicus()}}
 }
 \value{
 a list of stars objects groups by dataset_id and depth.  Each element,
@@ -48,6 +48,6 @@ dataset_id, depth and time.  We use this because a degenerate dimension (just on
 element) may be dropped, and so the time/depth context may be lost
 }
 \description{
-A wrapper around \code{\link[copernicus:fetch_copernicus]{copernicus::fetch_copernicus()}} to fetch Copernicus data as
+A wrapper around \code{copernicus::fetch_copernicus()} to fetch Copernicus data as
 stars objects.
 }

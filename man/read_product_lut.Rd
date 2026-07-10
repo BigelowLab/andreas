@@ -19,12 +19,12 @@ read_product_lut(
 the specified \code{product_id}}
 }
 \value{
-a table with the following
+a table with at least the following
 \itemize{
 \item product_id
 \item dataset_id
 \item dataset_name
-\item name chr short_name converted to camelCase (used for file View(xstorage)
+\item name chr short_name converted to camelCase (used for file View(x))
 \item short_name
 \item standard_name
 \item units
@@ -34,6 +34,10 @@ a table with the following
 \item maxdepth for \code{copernicusmarine} CLI request
 \item start_time known data service availability
 \item end_time known data service availability
+\item time_step in seconds
+\item min_depth minimum available depth
+\item max_depth maximum available depth
+\item n_depth number of available depth layers
 }
 }
 \description{
