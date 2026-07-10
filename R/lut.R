@@ -13,6 +13,7 @@ list_luts = function(path = copernicus::copernicus_path("lut")){
 #' Read a product LUT used for searches and merge with a product description
 #' 
 #' @export
+#' @param region chr, the regional name
 #' @param product_id chr, the product identifier.  The associated file must exist
 #' @param description table, the table produced by [nicolaus::read_catalog] for
 #'   the specified `product_id`
@@ -30,10 +31,12 @@ list_luts = function(path = copernicus::copernicus_path("lut")){
 #' * maxdepth for `copernicusmarine` CLI request
 #' * start_time known data service availability
 #' * end_time known data service availability
-read_product_lut = function(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
+read_product_lut = function(region = "chfc",
+                            product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
                             description = nicolaus::read_catalog()){
   
-  filename = copernicus::copernicus_path("lut", paste0(product_id[1], ".csv"))
+  filename = copernicus::copernicus_path("lut", 
+            sprintf("%s-%s.csv", region[1], product_id[1]))
   if(!file.exists(filename)) stop("product lut file not found: ", filename)
   lut = readr::read_csv(filename, show_col_types = FALSE) |> 
     dplyr::mutate(name = snakecase::to_lower_camel_case(.data$short_name),
@@ -61,6 +64,7 @@ read_product_lut = function(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
 #' 
 #' @export
 #' @param x chr the name of the product
+#' @param region chr, the name of the region
 #' @param catalog table of products (unflattened)
 #' @param save_lut log, if TRUE save to CSV format in `inst/lut`
 #' @return a table of look up values.  You'll edit this file to decide which to fetch
@@ -78,6 +82,7 @@ read_product_lut = function(product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
 #' * mindepth 0
 #' * maxdepth 1
 create_lut <- function(x = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
+                       region = "nowhere",
                        catalog = nicolaus::read_catalog(),
                        save_lut = FALSE){
   
@@ -88,7 +93,8 @@ create_lut <- function(x = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
                   fetch = "no",
                   mindepth = 0,
                   maxdepth = 1)
-  if (save_lut) readr::write_csv(lut, copernicus_path("lut", paste0(x,".csv")))
+  if (save_lut) readr::write_csv(lut, 
+                                 copernicus_path("lut", sprintf("%s-%s.csv",region,x)))
   lut
 }
 

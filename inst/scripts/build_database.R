@@ -80,7 +80,8 @@ fetch_data = function(tbl, key, cfg = NULL, db = NULL){
 main = function(cfg){
   
   DB = andreas::read_database(cfg$path)
-  P = andreas::read_product_lut(cfg$product) 
+  P = andreas::read_product_lut(region = cfg$region,
+                                product_id = cfg$product) 
   if ("dataset" %in% names(cfg)) P = dplyr::filter(P, dataset_id %in% cfg$dataset)
   db = P |>
     dplyr::filter(fetch == "yes") |>

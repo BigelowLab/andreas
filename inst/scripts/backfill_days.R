@@ -137,7 +137,8 @@ backfill_dataset = function(p, key,
 main = function(cfg = NULL,
                 dates = c(as.Date("1993-01-01"), Sys.Date() + 3)){
  
-  P = andreas::read_product_lut(cfg$product) |>
+  P = andreas::read_product_lut(region = cfg$region,
+                                product_id = cfg$product) |>
     dplyr::mutate(period = dataset_period(.data$dataset_id)) |>
     dplyr::filter(fetch == "yes", 
                   period == "day") |>

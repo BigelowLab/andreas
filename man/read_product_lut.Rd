@@ -5,11 +5,14 @@
 \title{Read a product LUT used for searches and merge with a product description}
 \usage{
 read_product_lut(
+  region = "chfc",
   product_id = "GLOBAL_ANALYSISFORECAST_PHY_001_024",
   description = nicolaus::read_catalog()
 )
 }
 \arguments{
+\item{region}{chr, the regional name}
+
 \item{product_id}{chr, the product identifier.  The associated file must exist}
 
 \item{description}{table, the table produced by \link[nicolaus:read_catalog]{nicolaus::read_catalog} for

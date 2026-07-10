@@ -92,7 +92,7 @@ charlier::info("backfill_missing for %s/%s", cfg$reg,cfg$product)
 path = andreas::copernicus_path(cfg$reg, cfg$product)
 DB = andreas::read_database(path)
 
-LUT = andreas::read_product_lut(cfg$product)
+LUT = andreas::read_product_lut(region = cfg$region, product_id = cfg$product)
 db = filter(DB, .data$period == Args$period)
 newdb = main(db, path, cfg, LUT) |>
   append_database(path)

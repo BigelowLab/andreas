@@ -95,7 +95,8 @@ main = function(date = Sys.Date(), cfg = NULL){
   
   dates <- date + c(0,seq_len(9))
   
-  P = andreas::read_product_lut(cfg$product) |>
+  P = andreas::read_product_lut(region = cfg$region,
+                                product_id = cfg$product) |>
     dplyr::filter(fetch == "yes") |>
     group_by(dataset_id, depth) 
 
