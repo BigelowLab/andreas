@@ -35,6 +35,7 @@ a table with at least the following
 \item start_time known data service availability
 \item end_time known data service availability
 \item time_step in seconds
+\item period "day", "month", etc
 \item min_depth minimum available depth
 \item max_depth maximum available depth
 \item n_depth number of available depth layers

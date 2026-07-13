@@ -32,6 +32,7 @@ list_luts = function(path = copernicus::copernicus_path("lut")){
 #' * start_time known data service availability
 #' * end_time known data service availability
 #' * time_step in seconds
+#' * period "day", "month", etc
 #' * min_depth minimum available depth
 #' * max_depth maximum available depth
 #' * n_depth number of available depth layers
@@ -44,7 +45,9 @@ read_product_lut = function(region = "chfc",
   if(!file.exists(filename)) stop("product lut file not found: ", filename)
   lut = readr::read_csv(filename, show_col_types = FALSE) |> 
     dplyr::mutate(name = snakecase::to_lower_camel_case(.data$short_name),
-                  .before = dplyr::all_of("short_name"))
+                  .before = dplyr::all_of("short_name")) |>
+    dplyr::mutate(period = dataset_period(.data$dataset_id),
+                  .after = dplyr::all_of("n_depth"))
   
   
   #desc = description |>

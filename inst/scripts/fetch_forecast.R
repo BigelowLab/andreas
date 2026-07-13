@@ -97,7 +97,8 @@ main = function(date = Sys.Date(), cfg = NULL){
   
   P = andreas::read_product_lut(region = cfg$region,
                                 product_id = cfg$product) |>
-    dplyr::filter(fetch == "yes") |>
+    dplyr::filter(fetch == "yes",
+                  period == cfg$period) |>
     group_by(dataset_id, depth) 
 
   out_path <- copernicus::copernicus_path(cfg$region, cfg$product)
@@ -127,11 +128,15 @@ Args = argparser::arg_parser("Fetch a copernicus forecast",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config","world-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
+  add_argument("--period",
+               help = 'period of data to fetch - such as day or month',
+               default = "day") |>
   parse_args()
 
 
 cfg = yaml::read_yaml(Args$config)
 cfg$bb = cofbb::get_bb(cfg$region)
+cfg$period = Args$period
 charlier::start_logger(copernicus::copernicus_path("log"))
 charlier::info("fetch_forecast: %s %s", cfg$region, cfg$product)
 date = as.Date(Args$date)
