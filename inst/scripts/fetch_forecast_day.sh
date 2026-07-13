@@ -11,16 +11,16 @@ now=`date`
 echo "[${now}] fetch_forecast.sh" >> ${LOG}
 
 # BGC for the world
-CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[0]} >> ${LOG}"
+CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[0]} --period day >> ${LOG}"
 echo "## ${CMD}" >> ${LOG}
 eval ${CMD}
 
 # PHY for a region
-CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[1]} >> ${LOG}"
+CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[1]} --period day >> ${LOG}"
 echo "## ${CMD}" >> ${LOG}
 eval ${CMD}
 
 # PHY for a region
-CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[2]} >> ${LOG}"
+CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[2]} --period day >> ${LOG}"
 echo "## ${CMD}" >> ${LOG}
 eval ${CMD}
