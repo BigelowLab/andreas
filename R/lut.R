@@ -40,6 +40,11 @@ read_product_lut = function(region = "chfc",
                             product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
                             description = nicolaus::read_catalog()){
   
+  if (FALSE){
+    region = "chfc"
+    product_id = 'GLOBAL_ANALYSISFORECAST_PHY_001_024'
+    description = nicolaus::read_catalog()
+  }
   filename = copernicus::copernicus_path("lut", 
             sprintf("%s-%s.csv", region[1], product_id[1]))
   if(!file.exists(filename)) stop("product lut file not found: ", filename)
@@ -47,19 +52,22 @@ read_product_lut = function(region = "chfc",
     dplyr::mutate(name = snakecase::to_lower_camel_case(.data$short_name),
                   .before = dplyr::all_of("short_name")) |>
     dplyr::mutate(period = dataset_period(.data$dataset_id),
-                  .after = dplyr::all_of("n_depth"))
+                  .after = dplyr::all_of("n_depth")) |>
+    # here we update start_time and end_time with those from the description (catalog)
+    # which is updated daily
+    dplyr::select(-dplyr::all_of(c("start_time","end_time"))) |>
+    dplyr::left_join(description |>
+                       dplyr::select(dplyr::any_of(c("product_id",
+                                                       "dataset_id",
+                                                       "standard_name",
+                                                       "start_time",
+                                                       "end_time"))),
+                     by = c(c("product_id",
+                              "dataset_id",
+                              "standard_name"))) |>
+    dplyr::relocate(dplyr::all_of(c("start_time","end_time")),
+                    .before = dplyr::all_of("time_step"))
   
-  
-  #desc = description |>
-  #  dplyr::select(-dplyr::all_of(c("units","standard_name"))) |>
-  #  dplyr::filter(.data$dataset_id %in% lut$dataset_id & .data$short_name %in% lut$short_name)
-  #
-  #z = lut |>
-  #  dplyr::select(-dplyr::any_of(c("product_id", "title"))) |>
-  #  dplyr::left_join(desc, 
-  #                   by = c("dataset_id", "short_name")) |>
-  #  dplyr::relocate(dplyr::all_of("product_id"), .before = dplyr::all_of("dataset_id"))
-  #
   lut
 }
 

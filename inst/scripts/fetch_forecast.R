@@ -74,11 +74,13 @@ fetch_dataset = function(tbl, key, dates = NULL, out_path = NULL, cfg = NULL){
     
         for (i in seq_along(fname)){
           ok = make_path(dirname(ofiles[i]))
+          if (FALSE) charlier::info("write: %s",ofiles[i])
           s = if ("time" %in% names(dimx)){
               stars::write_stars(dplyr::slice(x[nm], "time", i), ofiles[i]) 
             } else {
               stars::write_stars(x[nm], ofiles[i]) 
             }
+          if (FALSE) charlier::info("success: %s",file.exists(ofiles[i]))
         }
         db
       } ) |>
