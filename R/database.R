@@ -59,8 +59,9 @@ compose_filename <- function(x, path = ".", ext = ".tif"){
 #'  \item{.name chr, concatenation of `name_depth`}
 #' }
 decompose_filename = function(x = c("cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_uo_raw.tif", 
-                                            "cmems_mod_glo_phy_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_zos_raw.tif"),
-                                     ext = get_extension(x)[1]){
+                                    "cmems_mod_glo_phy_anfc_0.083deg_P1D-m__2025-03-18T000000_sur_day_zos_raw.tif",
+                                    "cmems_mod_glo_phy_my_0.083deg_P1D-m__1993-01-01T000000_sur_month_so_mean.tif"),
+                                    ext = get_extension(x)[1]){
   
   datetime = function(x = c("2022-01-15T000000", "2022-01-16T123456")){
     list(date = as.Date(substring(x, 1,10), format = "%Y-%m-%d"),
