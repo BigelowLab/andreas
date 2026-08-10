@@ -15,6 +15,7 @@
 # The 4 configs we should run on are in /mnt/s1/projects/ecocast/coredata/copernicus/config/
 # world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml
 # world-GLOBAL_MULTIYEAR_BGC_001_029.yaml
+# world-GLOBAL_ANALYSISFORECAST_PHY_001_024.csv
 # chfc-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml
 # chfc-GLOBAL_MULTIYEAR_PHY_001_030.yaml
   
@@ -142,8 +143,6 @@ main = function(cfg = NULL,
     dplyr::mutate(period = dataset_period(.data$dataset_id)) |>
     dplyr::filter(fetch == "yes", 
                   period == "day") |>
-    #dplyr::mutate(n_depth = ifelse(is.na(.data$n_depth), 1, .data$n_depth)) |>
-    #dplyr::group_by(dataset_id, depth, n_depth) |>
     dplyr::mutate(.name = paste(.data$short_name, .data$depth, sep = "_"))
   
   path = copernicus::copernicus_path(cfg$region, cfg$product) |>
@@ -165,6 +164,21 @@ main = function(cfg = NULL,
   return(0)
 }
 
+#' given one config, reset the logger and run the updater
+run_backfill= function(cfg){
+  cfg$bb = cofbb::get_bb(cfg$region)
+  charlier::start_logger(copernicus_path(cfg$reg, cfg$product, "log"))
+  charlier::info("backfill_days for %s", cfg$product)
+  
+  if (!interactive()){
+    ok = main(cfg, dates = dates)
+  } else {
+    ok = 0
+  }
+  ok
+}
+
+
 Args = argparser::arg_parser("Backfill copernicus data",
                              name = "backfill_days.R", 
                              hide.opts = TRUE) |>
@@ -180,19 +194,27 @@ Args = argparser::arg_parser("Backfill copernicus data",
                default = format(Sys.Date() + 3, "%Y-%m-%d")) |>
   parse_args()
 
+configfile = Args$config
+cat("configfile", configfile, "\n")
+if (configfile == "all"){
+  cfg = copernicus_path("config",
+    c("world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml",
+      "world-GLOBAL_MULTIYEAR_BGC_001_029.yaml",
+      "world-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml",
+      "chfc-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml",
+      "chfc-GLOBAL_MULTIYEAR_PHY_001_030.yaml"))
+  config = lapply(cfg, yaml::read_yaml)
+} else {
+  config = yaml::read_yaml(configfile)
+}
 
-cfg = yaml::read_yaml(Args$config)
-cfg$bb = cofbb::get_bb(cfg$region)
-charlier::start_logger(copernicus_path(cfg$reg, cfg$product, "log"))
-charlier::info("backfill_days for %s", cfg$product)
 START_DATE = as.Date(Args$start, format = "%Y-%m-%d")
 END_DATE = as.Date(Args$end, format = "%Y-%m-%d")
 MAX_MISSED_COUNT = 3
 dates = c(START_DATE, END_DATE)
-if (!interactive()){
-  ok = main(cfg, dates = dates)
-  charlier::info("backfill_days: done")
-  quit(save = "no", status = ok)
-} 
 
 
+ok = sapply(config, run_backfill)
+
+charlier::info("backfill_days: done")
+if (!interactive()) quit(save = "no", status = sum(ok))

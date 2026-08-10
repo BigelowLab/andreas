@@ -12,6 +12,7 @@
 
 suppressPackageStartupMessages({
   library(copernicus)
+  library(andreas)
   library(stars)
   library(dplyr)
   library(charlier)

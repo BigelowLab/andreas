@@ -116,5 +116,26 @@ create_lut <- function(product = "GLOBAL_ANALYSISFORECAST_BGC_001_028",
   lut
 }
 
+#' Read a table of (standard) depth values
+#' 
+#' @export
+#' @param levels num the number of depth levels 
+#' @param path chr, the path to the LUT directory
+#' @return data frame with depth and name columns
+read_depth_lut = function(levels = 50,
+                          path = copernicus::copernicus_path("lut")){
+  filename = file.path(path,
+                       sprintf("depth_values_%i_intervals.csv", levels[1]))
+  readr::read_csv(filename,
+                  col_types = "nc")
+}
 
+#' Farmat a depth as a depth name
+#' 
+#' @export
+#' @param x num the actual depth(s)
+#' @return character - the deoth(s) formatted as a standard string 
+format_depth_level = function(x){
+  sprintf("%0.2f", x)
+}
 
