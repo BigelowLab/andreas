@@ -164,7 +164,11 @@ read_database <- function(path,
       dplyr::slice(0)
   } else {
     # date var depth
-    db = suppressMessages(readr::read_csv(filepath, show_col_types = FALSE))
+    db = suppressMessages(readr::read_csv(filepath, 
+                                          col_types = readr::cols(.default = readr::col_character(),
+                                                                  depth = readr::col_charcater(),
+                                                                  date = readr::col_date(format = "")
+                                          )))
     if (!"name" %in% names(db)) {
       db = dplyr::mutate(db, name = common_name(.data$variable))
     }
