@@ -166,7 +166,7 @@ read_database <- function(path,
     # date var depth
     db = suppressMessages(readr::read_csv(filepath, 
                                           col_types = readr::cols(.default = readr::col_character(),
-                                                                  depth = readr::col_charcater(),
+                                                                  depth = readr::col_character(),
                                                                   date = readr::col_date(format = "")
                                           )))
     if (!"name" %in% names(db)) {
