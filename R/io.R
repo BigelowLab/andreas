@@ -113,7 +113,7 @@ read_copernicus = function(db, path,
           f = andreas::compose_filename(grp, path, ext = ".nc")
           ss = lapply(seq_along(f),
             function(i){
-                suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i]), name_by = name) |>
+                suppressMessages(stars::read_ncdf(f[i],var = grp$variable[i])) |>
                   dplyr::slice("time",1)
               })
           do.call(c, append(ss, list(along = list(time = grp$datetime, tolerance = tolerance)))) |>
@@ -186,7 +186,7 @@ unpack_copernicus <- function(filename, banded = FALSE, bind = TRUE){
 #' @param lut a tabular database (ala from `read_product_lut()`)
 #' @param path char, the data path
 #' @param time NULL
-#' @param ... arguments for \code{\link{generate_filename}}
+#' @param ... arguments for [copernicus::generate_filename()]
 #' @return tabular database as a tibble
 archive_andreas = function(x, lut,
                            path = ".",

@@ -15,7 +15,7 @@ archive_andreas(x, lut, path = ".", time = NULL, ...)
 
 \item{time}{NULL}
 
-\item{...}{arguments for \code{\link{generate_filename}}}
+\item{...}{arguments for \code{\link[copernicus:generate_filename]{copernicus::generate_filename()}}}
 }
 \value{
 tabular database as a tibble

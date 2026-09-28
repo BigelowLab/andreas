@@ -19,7 +19,7 @@ fetch_product_by_day(
 
 \item{bb}{bounding box or somehting from which a bounding box can be found.}
 
-\item{...}{other arguments for \link{fetch_copernicus_cli_subset}}
+\item{...}{other arguments for \code{\link[copernicus:fetch_copernicus_cli_subset]{copernicus::fetch_copernicus_cli_subset()}}}
 }
 \value{
 list of stars objects (one for each dataset) possibly with NULLs for unknown datasets

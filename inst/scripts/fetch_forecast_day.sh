@@ -5,7 +5,9 @@ LOG=/mnt/ecocast/coredata/copernicus/log
 CONFIGPATH=/mnt/s1/projects/ecocast/coredata/copernicus/config/
 configs=(world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml 
          chfc-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml
-         world-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml)
+         world-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml
+         sab-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml
+         jordanbasin-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml)
 
 now=`date`
 echo "[${now}] fetch_forecast.sh" >> ${LOG}
@@ -15,12 +17,17 @@ CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[0]} --period day >> ${LOG
 echo "## ${CMD}" >> ${LOG}
 eval ${CMD}
 
-# PHY for a region
+# PHY for chfc
 CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[1]} --period day >> ${LOG}"
 echo "## ${CMD}" >> ${LOG}
 eval ${CMD}
 
-# PHY for a region
+# PHY for a world
 CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[2]} --period day >> ${LOG}"
+echo "## ${CMD}" >> ${LOG}
+eval ${CMD}
+
+# PHY for jordanbasin
+CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${configs[3]} --period day >> ${LOG}"
 echo "## ${CMD}" >> ${LOG}
 eval ${CMD}

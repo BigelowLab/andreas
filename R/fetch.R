@@ -167,7 +167,7 @@ fetch_andreas = function(x,
 #' @param p table of product info to be grouped by `dataset_id`
 #' @param x Date (or YYYY-mm-dd string)
 #' @param bb bounding box or somehting from which a bounding box can be found.
-#' @param ... other arguments for [fetch_copernicus_cli_subset]
+#' @param ... other arguments for [copernicus::fetch_copernicus_cli_subset()]
 #' @return list of stars objects (one for each dataset) possibly with NULLs for unknown datasets
 fetch_product_by_day = function(p = product_lut() |>
                                   dplyr::filter(.data$fetch == "yes",

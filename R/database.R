@@ -211,7 +211,6 @@ write_database <- function(x, path,
 append_database <- function(x, path, filename = "database"){
   
   if (is.null(x) || nrow(x) == 0) {
-    
     r = read_database(path, filename = filename)
     return(r)
   }
@@ -254,7 +253,7 @@ select_database = function(x, cols = database_variables()){
     stop("input has no data")
   }
   
-  dplyr::select(x, dplyr::all_of(cols))
+  dplyr::select(x, dplyr::any_of(cols))
 }
 
 
@@ -305,6 +304,49 @@ missing_records = function(x,
   dr = range(x$date)
   dd = seq(from = dr[1], to = dr[2], by = by)
   dd[!(dd %in% x$date)]
+}
+
+
+
+#' Retrieve a listing of active databases
+#' 
+#' This list, located in lut/active-databases.csv, is manually curated.
+#' 
+#' @export
+#' @param path chr, the root data directory 
+#' @param include chr, one or more variables to include, including "path" or
+#'   "database".  "none" (default) means to skip.
+#' @return data frame of active databases (region, group, period, product_id and
+#' longname, with path and database possibly added)
+active_databases = function(path = copernicus::copernicus_path(),
+                            include = c("none",  "path", "database")[1]){
+  include = tolower(include)
+  period_lut = c("ANALYSISFORECAST" = "anfc", "MULTIYEAR" = "my")
+  filename = file.path(path, "lut", "active-databases.csv")
+  stopifnot(file.exists(filename))
+  x = readr::read_csv(filename, col_types = "ccc") 
+  
+  ss = strsplit(x$product_id, "_", fixed = TRUE) 
+  x = dplyr::mutate(x,
+                    group = sapply(ss, "[[", 3) |> tolower(),
+                    period = period_lut[sapply(ss, "[[", 2)],
+                    .after = 1)
+  
+  if (any(c("path", "database") %in% include)) {
+    x = x |> 
+      dplyr::mutate(path = file.path(path, .data$region, .data$product_id)) 
+  }
+  
+  if ("database" %in% include){
+    x = dplyr::rowwise(x) |>
+      dplyr::group_map(
+        function(row, key){
+          dplyr::mutate(row, database = list(read_database(.data$path)))
+        } ) |>
+      dplyr::bind_rows()
+  }
+  
+  x
 }
 
 

@@ -129,7 +129,8 @@ Args = argparser::arg_parser("Fetch a copernicus forecast",
                type = "character") |>
   add_argument("--config",
                help = 'configuration file',
-               default = copernicus_path("config","world-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
+               default = copernicus_path("config", "jordanbasin-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
+               #default = copernicus_path("config","world-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
   add_argument("--period",
                help = 'period of data to fetch - such as day or month',
                default = "day") |>
