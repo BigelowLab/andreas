@@ -78,7 +78,7 @@ Args = argparser::arg_parser("Backfill copernicus missing data",
   add_argument("--config",
                help = 'configuration file',
                default = copernicus_path("config", 
-                                         "world-GLOBAL_ANALYSISFORECAST_BGC_001_028.yaml")) |>
+                                         "sab-GLOBAL_ANALYSISFORECAST_PHY_001_024.yaml")) |>
   add_argument("--period",
                help = 'used to filter the type of dataset to backfill, "any" to skip filtering',
                default = "day") |>
