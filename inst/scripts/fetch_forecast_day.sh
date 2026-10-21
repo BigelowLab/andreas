@@ -16,7 +16,7 @@ for cfg in ${configs[@]}
 do
   CMD="Rscript ${SCRIPT} --config ${CONFIGPATH}${cfg} --period day >> ${LOG}"
   echo "####"
-  echo "##  ${cfg}"
+  echo "##  ${cfg}" >> ${LOG}
   echo "####"
   echo "## ${CMD}" >> ${LOG}
   eval ${CMD}
