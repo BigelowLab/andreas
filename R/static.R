@@ -139,9 +139,10 @@ subset_static_by_region = function(name = c("deptho", "mask", "deptho_lev"),
 #' @param product_id chr the product id
 #' @return a stars object
 fetch_static = function(product_id = "GLOBAL_ANALYSISFORECAST_PHY_001_024"){
-  
-  p = copernicus::read_product_catalog(product_id[1]) |>
-    dplyr::filter(grepl("static", .data$dataset_id, ignore.case = TRUE))
+  prod = product_id
+  p = copernicus::read_product_catalog() |>
+    dplyr::filter(.data$product_id == prod,
+                  grepl("static", .data$dataset_id, ignore.case = TRUE))
   
   x = copernicus::fetch_copernicus(use = "cli", 
                                    bind = TRUE,

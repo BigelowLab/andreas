@@ -19,7 +19,7 @@ read_buoys = function(
 #' 
 #' @export
 #' @param x stars object (with or without time dimension)
-#' @param y sf point data
+#' @param y sf point data or two-column matrix with coordinate points in rows 
 #' @param form chr one of either "long" (the default) or "wide" to control 
 #'   output column layout. 
 #' @param ... other arguments passed to `stars::st_extract()`
@@ -31,7 +31,11 @@ extract_points = function(x, y,
   N = floor(log10(n)) + 1
   fmt = paste0("p%0.", N, "i")
   pnames = sprintf(fmt, seq_len(n))
-  xy = sf::st_coordinates(y)
+  if (inherits(y, "matrix")){
+    xy = y 
+  } else {
+    xy = sf::st_coordinates(y)
+  }
   if (length(dim(x)) == 2){
     
     m = stars::st_extract(x, xy)

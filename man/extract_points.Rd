@@ -9,7 +9,7 @@ extract_points(x, y, form = c("long", "wide"))
 \arguments{
 \item{x}{stars object (with or without time dimension)}
 
-\item{y}{sf point data}
+\item{y}{sf point data or two-column matrix with coordinate points in rows}
 
 \item{form}{chr one of either "long" (the default) or "wide" to control
 output column layout.}

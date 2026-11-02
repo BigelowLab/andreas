@@ -19,9 +19,6 @@ catalog = tibble(
 ) |>
   filter(region == "world")
 
-
-
-
 vars = c("deptho", "mask")
 depth = c(0,1)
 

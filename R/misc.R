@@ -23,6 +23,7 @@ drop_degenerate = function(x){
 #' 
 #' Adapted from https://stat.ethz.ch/pipermail/r-help/2012-June/316441.html
 #'
+#' @export
 #' @param pattern character vector of patterns
 #' @param x the character vector to search
 #' @param op logical vector operator back quoted, defaults to `|`
